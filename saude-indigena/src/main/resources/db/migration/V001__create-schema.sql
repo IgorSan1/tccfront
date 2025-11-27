@@ -1,3 +1,0 @@
-CREATE SCHEMA IF NOT EXISTS saude;
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" schema saude;
