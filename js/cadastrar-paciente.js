@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log("🔐 Token encontrado, enviando requisição...");
 
-            const response = await fetch("http://18.218.240.234:8080/api/v1/pessoa", {
+            const response = await fetch("/api/v1/pessoa", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -1,5 +1,5 @@
 (function() {
-    const API_BASE = "http://18.218.240.234:8080/api/v1";
+    const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     const urlParams = new URLSearchParams(window.location.search);
     const cpf = urlParams.get('cpf');
