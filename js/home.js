@@ -1,5 +1,5 @@
 (function(){
-    const API_BASE = "http://localhost:8080/api/v1";
+    const API_BASE = "18.218.240.234:8080/api/v1";
     const searchBar = document.querySelector(".search-bar");
     let debounceId;
 
