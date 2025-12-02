@@ -582,7 +582,7 @@
         }
     }
 
-    // ===== ✅ BUSCAR HISTÓRICO VACINAL - CORRIGIDO =====
+    // ===== ✅ BUSCAR HISTÓRICO VACINAL - CORRIGIDO E MELHORADO =====
     async function buscarHistoricoVacinal(pessoaUuid) {
         console.log("💉 Buscando histórico vacinal do paciente:", pessoaUuid);
 
@@ -607,6 +607,7 @@
             }
 
             const data = await response.json();
+            console.log("📦 Resposta completa da API:", data);
             
             let vacinacoes = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -616,18 +617,22 @@
             }
 
             console.log("📦 Total de vacinações no sistema:", vacinacoes.length);
+            console.log("📋 Lista de vacinações (primeiras 3):", vacinacoes.slice(0, 3));
 
             // Filtrar vacinações do paciente com detalhes completos
             const vacinacoesPaciente = [];
             
             for (const v of vacinacoes) {
                 try {
+                    console.log(`🔍 Buscando detalhes da vacinação UUID: ${v.uuid}`);
+                    
                     const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     
                     if (respDetalhe.ok) {
                         const detalhe = await respDetalhe.json();
+                        console.log(`📄 Detalhe da vacinação ${v.uuid}:`, detalhe);
                         
                         let detalheDados = null;
                         if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
@@ -640,14 +645,27 @@
                             detalheDados = detalhe;
                         }
                         
+                        console.log(`🔎 DetalheDados processado:`, detalheDados);
+                        console.log(`🔎 Pessoa UUID do detalhe:`, detalheDados?.pessoa?.uuid);
+                        console.log(`🔎 Pessoa UUID buscado:`, pessoaUuid);
+                        console.log(`🔎 UUIDs são iguais?`, detalheDados?.pessoa?.uuid === pessoaUuid);
+                        
                         if (detalheDados && detalheDados.pessoa && detalheDados.pessoa.uuid === pessoaUuid) {
-                            vacinacoesPaciente.push({
-                                ...v,
+                            const vacinacaoCompleta = {
+                                uuid: v.uuid,
+                                dataAplicacao: v.dataAplicacao || detalheDados.dataAplicacao,
+                                dataProximaDose: v.dataProximaDose || detalheDados.dataProximaDose,
                                 pessoa: detalheDados.pessoa,
                                 vacina: detalheDados.vacina
-                            });
-                            console.log("✅ Vacinação encontrada:", detalheDados.vacina?.nome);
+                            };
+                            
+                            vacinacoesPaciente.push(vacinacaoCompleta);
+                            console.log("✅ Vacinação adicionada:", vacinacaoCompleta);
+                        } else {
+                            console.log("❌ Vacinação não pertence a este paciente");
                         }
+                    } else {
+                        console.warn(`⚠️ Erro ao buscar detalhe (status ${respDetalhe.status}):`, v.uuid);
                     }
                 } catch (err) {
                     console.warn("⚠️ Erro ao buscar detalhe da vacinação:", err);
@@ -658,6 +676,7 @@
             vacinacoesFiltradasAtual = [...vacinacoesPaciente];
             
             console.log(`✅ ${vacinacoesPaciente.length} vacinações encontradas para o paciente`);
+            console.log("📊 Vacinações do paciente (completas):", vacinacoesPaciente);
 
             renderizarHistoricoVacinal(vacinacoesPaciente);
 
