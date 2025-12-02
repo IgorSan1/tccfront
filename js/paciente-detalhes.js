@@ -115,7 +115,6 @@
 
             console.log("👤 Role do usuário:", role);
 
-            // Mostrar botão de excluir para usuários autenticados (ADMIN ou USER)
             if (role === 'ADMIN' || role === 'USER') {
                 console.log("✅ Usuário possui permissão para exclusão - exibindo botão de excluir (role:", role, ")");
                 btnExcluir.style.display = 'inline-flex';
@@ -357,7 +356,7 @@
         }
     });
 
-    // ===== ✅ FUNÇÃO COMPLETA PARA DELETAR PACIENTE (ADMIN ONLY) =====
+    // ===== ✅ FUNÇÃO COMPLETA PARA DELETAR PACIENTE =====
     window.excluirPaciente = async function () {
         if (!pessoaAtual) {
             alert("❌ Erro: Dados do paciente não disponíveis.");
@@ -366,7 +365,6 @@
 
         console.log("🗑️ Iniciando processo de exclusão do paciente:", pessoaAtual.nomeCompleto);
 
-        // ✅ Primeira confirmação
         const confirmacao1 = confirm(
             `⚠️ ATENÇÃO: Exclusão de Paciente\n\n` +
             `Tem certeza que deseja excluir o paciente "${pessoaAtual.nomeCompleto}"?\n\n` +
@@ -379,7 +377,6 @@
             return;
         }
 
-        // ✅ Segunda confirmação (mais enfática)
         const confirmacao2 = confirm(
             `🚨 ÚLTIMA CONFIRMAÇÃO\n\n` +
             `Esta ação NÃO PODE SER DESFEITA!\n\n` +
@@ -392,7 +389,6 @@
             return;
         }
 
-        // ✅ Verificar se o token existe
         const token = localStorage.getItem("token");
         if (!token) {
             alert("❌ Você precisa estar logado para excluir um paciente.");
@@ -400,12 +396,10 @@
             return;
         }
 
-        // ✅ Verificar se o usuário é ADMIN
         try {
             const payload = decodeJWT(token);
             const role = payload?.role;
 
-            // Permitir exclusão para ADMIN e USER (a autorização no backend já permite ambos)
             if (!(role === 'ADMIN' || role === 'USER')) {
                 alert(
                     "⚠️ ACESSO NEGADO\n\n" +
@@ -426,7 +420,6 @@
             return;
         }
 
-        // ✅ Executar a exclusão
         try {
             console.log("🔄 Enviando requisição de exclusão para o backend...");
             console.log("UUID do paciente:", pessoaAtual.uuid);
@@ -443,7 +436,6 @@
             if (response.ok || response.status === 204) {
                 console.log("✅ Paciente excluído com sucesso");
 
-                // Limpar dados do localStorage
                 localStorage.removeItem("pacienteSelecionado");
 
                 alert(
@@ -452,7 +444,6 @@
                     `Você será redirecionado para a página inicial.`
                 );
 
-                // Redirecionar para home após 1 segundo
                 setTimeout(() => {
                     window.location.href = "home.html";
                 }, 1000);
@@ -582,7 +573,6 @@
             // Buscar histórico de vacinações
             await buscarHistoricoVacinal(pessoa.uuid);
             
-            // ✅ Controlar visibilidade do botão de excluir
             controlarVisibilidadeBotaoExcluir();
 
         } catch (error) {
@@ -592,9 +582,18 @@
         }
     }
 
-    // ===== BUSCAR HISTÓRICO VACINAL =====
+    // ===== ✅ BUSCAR HISTÓRICO VACINAL - CORRIGIDO =====
     async function buscarHistoricoVacinal(pessoaUuid) {
         console.log("💉 Buscando histórico vacinal do paciente:", pessoaUuid);
+
+        // ✅ GARANTIR QUE OS ELEMENTOS EXISTAM
+        const tbody = document.getElementById('historico-vacinacao-body');
+        const msgVazio = document.getElementById('historico-vacinacao-vazio');
+
+        if (!tbody || !msgVazio) {
+            console.error("❌ Elementos da tabela não encontrados no DOM");
+            return;
+        }
 
         try {
             const response = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
@@ -616,7 +615,9 @@
                 vacinacoes = data.dados;
             }
 
-            // Filtrar vacinações do paciente
+            console.log("📦 Total de vacinações no sistema:", vacinacoes.length);
+
+            // Filtrar vacinações do paciente com detalhes completos
             const vacinacoesPaciente = [];
             
             for (const v of vacinacoes) {
@@ -645,6 +646,7 @@
                                 pessoa: detalheDados.pessoa,
                                 vacina: detalheDados.vacina
                             });
+                            console.log("✅ Vacinação encontrada:", detalheDados.vacina?.nome);
                         }
                     }
                 } catch (err) {
@@ -661,21 +663,42 @@
 
         } catch (error) {
             console.error("❌ Erro ao buscar histórico vacinal:", error);
+            
+            // ✅ GARANTIR QUE A MENSAGEM SEJA EXIBIDA EM CASO DE ERRO
+            tbody.innerHTML = '';
+            msgVazio.style.display = 'block';
+            msgVazio.textContent = 'Erro ao carregar histórico de vacinações.';
         }
     }
 
-    // ===== RENDERIZAR HISTÓRICO VACINAL =====
+    // ===== ✅ RENDERIZAR HISTÓRICO VACINAL - CORRIGIDO =====
     function renderizarHistoricoVacinal(vacinacoes) {
         const tbody = document.getElementById('historico-vacinacao-body');
         const msgVazio = document.getElementById('historico-vacinacao-vazio');
 
-        if (vacinacoes.length === 0) {
-            tbody.innerHTML = '';
-            msgVazio.style.display = 'block';
+        console.log("🎨 Renderizando histórico vacinal...");
+        console.log("📊 Quantidade de vacinações:", vacinacoes.length);
+
+        // ✅ GARANTIR QUE OS ELEMENTOS EXISTAM
+        if (!tbody || !msgVazio) {
+            console.error("❌ Elementos da tabela não encontrados no DOM");
             return;
         }
 
+        // ✅ LIMPAR TABELA SEMPRE
         tbody.innerHTML = '';
+
+        // ✅ VERIFICAR SE NÃO HÁ VACINAÇÕES
+        if (!vacinacoes || vacinacoes.length === 0) {
+            console.log("ℹ️ Nenhuma vacinação encontrada - exibindo mensagem");
+            msgVazio.style.display = 'block';
+            msgVazio.textContent = 'Nenhuma vacinação registrada para este paciente.';
+            removerPaginacao();
+            return;
+        }
+
+        // ✅ HÁ VACINAÇÕES - OCULTAR MENSAGEM E RENDERIZAR
+        console.log("✅ Vacinações encontradas - renderizando tabela");
         msgVazio.style.display = 'none';
 
         // Ordenar por data de aplicação (mais recente primeiro)
@@ -736,6 +759,7 @@
         });
 
         criarPaginacao(vacinacoesOrdenadas.length);
+        console.log(`✅ ${vacinacoesPaginadas.length} vacinações renderizadas (Página ${paginaAtual} de ${totalPaginas})`);
     }
 
     // ===== FUNÇÃO AUXILIAR PARA FORMATAR FABRICANTE =====
@@ -919,6 +943,13 @@
         }
         
         return btn;
+    }
+
+    function removerPaginacao() {
+        const paginacaoExistente = document.querySelector('.paginacao-container');
+        if (paginacaoExistente) {
+            paginacaoExistente.remove();
+        }
     }
 
     // ===== FILTRO DE VACINAÇÕES =====
