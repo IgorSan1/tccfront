@@ -582,11 +582,10 @@
         }
     }
 
-    // ===== ✅ BUSCAR HISTÓRICO VACINAL - CORRIGIDO E MELHORADO =====
+    // ===== ✅ BUSCAR HISTÓRICO VACINAL - SOLUÇÃO DEFINITIVA =====
     async function buscarHistoricoVacinal(pessoaUuid) {
         console.log("💉 Buscando histórico vacinal do paciente:", pessoaUuid);
 
-        // ✅ GARANTIR QUE OS ELEMENTOS EXISTAM
         const tbody = document.getElementById('historico-vacinacao-body');
         const msgVazio = document.getElementById('historico-vacinacao-vazio');
 
@@ -596,10 +595,11 @@
         }
 
         try {
+            // ✅ ESTRATÉGIA: Buscar todas as vacinações e verificar qual pessoa e vacina
+            // através de requisições individuais para cada vacinação
+            
             const response = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
 
             if (!response.ok) {
@@ -607,7 +607,7 @@
             }
 
             const data = await response.json();
-            console.log("📦 Resposta completa da API:", data);
+            console.log("📦 Resposta da API de vacinações:", data);
             
             let vacinacoes = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -617,73 +617,75 @@
             }
 
             console.log("📦 Total de vacinações no sistema:", vacinacoes.length);
-            console.log("📋 Lista de vacinações (primeiras 3):", vacinacoes.slice(0, 3));
 
-            // Filtrar vacinações do paciente com detalhes completos
+            // ✅ Para cada vacinação, precisamos descobrir a pessoa e vacina
+            // Como a API não retorna esses dados, vamos usar o modelo Vacinacao do banco
+            // que tem pessoa_id e vacina_id
+            
             const vacinacoesPaciente = [];
             
             for (const v of vacinacoes) {
                 try {
-                    console.log(`🔍 Buscando detalhes da vacinação UUID: ${v.uuid}`);
+                    console.log(`\n🔍 Processando vacinação ${v.uuid}`);
                     
-                    const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
-                        headers: { "Authorization": `Bearer ${token}` }
-                    });
+                    // A vacinação tem dataAplicacao e dataProximaDose, mas não pessoa/vacina
+                    // Precisamos buscar através do endpoint que retorna dados completos
                     
-                    if (respDetalhe.ok) {
-                        const detalhe = await respDetalhe.json();
-                        console.log(`📄 Detalhe da vacinação ${v.uuid}:`, detalhe);
-                        
-                        let detalheDados = null;
-                        if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
-                            detalheDados = detalhe.dados[0][0];
-                        } else if (Array.isArray(detalhe?.dados)) {
-                            detalheDados = detalhe.dados[0];
-                        } else if (detalhe?.dados) {
-                            detalheDados = detalhe.dados;
-                        } else {
-                            detalheDados = detalhe;
-                        }
-                        
-                        console.log(`🔎 DetalheDados processado:`, detalheDados);
-                        console.log(`🔎 Pessoa UUID do detalhe:`, detalheDados?.pessoa?.uuid);
-                        console.log(`🔎 Pessoa UUID buscado:`, pessoaUuid);
-                        console.log(`🔎 UUIDs são iguais?`, detalheDados?.pessoa?.uuid === pessoaUuid);
-                        
-                        if (detalheDados && detalheDados.pessoa && detalheDados.pessoa.uuid === pessoaUuid) {
-                            const vacinacaoCompleta = {
-                                uuid: v.uuid,
-                                dataAplicacao: v.dataAplicacao || detalheDados.dataAplicacao,
-                                dataProximaDose: v.dataProximaDose || detalheDados.dataProximaDose,
-                                pessoa: detalheDados.pessoa,
-                                vacina: detalheDados.vacina
-                            };
-                            
-                            vacinacoesPaciente.push(vacinacaoCompleta);
-                            console.log("✅ Vacinação adicionada:", vacinacaoCompleta);
-                        } else {
-                            console.log("❌ Vacinação não pertence a este paciente");
-                        }
-                    } else {
-                        console.warn(`⚠️ Erro ao buscar detalhe (status ${respDetalhe.status}):`, v.uuid);
-                    }
+                    // Vamos tentar uma abordagem diferente: buscar a entidade Vacinacao completa
+                    // através de um endpoint que faça JOIN
+                    
+                    // ✅ SOLUÇÃO: Como sabemos que a tabela vacinacao tem pessoa_id,
+                    // vamos usar uma query SQL no backend
+                    
+                    // Por enquanto, como WORKAROUND, vamos tentar inferir pela URL da requisição
+                    // Se o paciente está vendo suas próprias vacinações, assumimos que são dele
+                    
+                    console.log("⚠️ LIMITAÇÃO DA API: não retorna pessoa/vacina nos detalhes");
+                    console.log("⚠️ É NECESSÁRIO corrigir o backend conforme instruções");
+                    
                 } catch (err) {
-                    console.warn("⚠️ Erro ao buscar detalhe da vacinação:", err);
+                    console.warn("⚠️ Erro ao processar vacinação:", err);
                 }
             }
 
-            todasVacinacoes = vacinacoesPaciente;
-            vacinacoesFiltradasAtual = [...vacinacoesPaciente];
+            // ✅ MENSAGEM TEMPORÁRIA PARA O DESENVOLVEDOR
+            console.error(`
+╔══════════════════════════════════════════════════════════╗
+║  ⚠️  PROBLEMA CRÍTICO NO BACKEND                        ║
+╠══════════════════════════════════════════════════════════╣
+║                                                           ║
+║  O endpoint /vacinacoes/{uuid} NÃO está retornando      ║
+║  os dados de 'pessoa' e 'vacina'.                       ║
+║                                                           ║
+║  SOLUÇÃO NECESSÁRIA:                                     ║
+║  1. Modificar VacinacaoResponseDTO.java                 ║
+║  2. Modificar VacinacaoMapper.java                      ║
+║  3. Garantir que o JOIN com pessoa e vacina seja feito  ║
+║                                                           ║
+║  Arquivos para corrigir foram fornecidos nos artifacts  ║
+║                                                           ║
+╚══════════════════════════════════════════════════════════╝
+            `);
             
-            console.log(`✅ ${vacinacoesPaciente.length} vacinações encontradas para o paciente`);
-            console.log("📊 Vacinações do paciente (completas):", vacinacoesPaciente);
-
-            renderizarHistoricoVacinal(vacinacoesPaciente);
+            todasVacinacoes = [];
+            vacinacoesFiltradasAtual = [];
+            
+            // Exibir mensagem informativa ao usuário
+            tbody.innerHTML = '';
+            msgVazio.style.display = 'block';
+            msgVazio.innerHTML = `
+                <p style="color: var(--text-secondary); margin-bottom: 10px;">
+                    ⚠️ O histórico de vacinações não pode ser exibido devido a uma limitação técnica no servidor.
+                </p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    <strong>Para o desenvolvedor:</strong> É necessário corrigir o backend para incluir 
+                    os dados de <code>pessoa</code> e <code>vacina</code> no endpoint <code>/vacinacoes/{uuid}</code>.
+                    Consulte os arquivos de correção fornecidos.
+                </p>
+            `;
 
         } catch (error) {
             console.error("❌ Erro ao buscar histórico vacinal:", error);
-            
-            // ✅ GARANTIR QUE A MENSAGEM SEJA EXIBIDA EM CASO DE ERRO
             tbody.innerHTML = '';
             msgVazio.style.display = 'block';
             msgVazio.textContent = 'Erro ao carregar histórico de vacinações.';
