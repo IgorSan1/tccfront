@@ -293,8 +293,9 @@
 
             const contador = {};
             let vacinacoesProcessadas = 0;
+            let vacinacoesUuidNaoEncontrado = 0;
 
-            vacinacoes.forEach(v => {
+            vacinacoes.forEach((v, index) => {
                 if (!v.dataAplicacao) return;
                 
                 // Converter data
@@ -308,19 +309,96 @@
                 
                 // Verificar se está nos últimos 30 dias
                 if (dataVacinacao >= dia30Atras && dataVacinacao <= hoje) {
-                    // Buscar UUID da vacina (pode estar em v.vacinaUuid ou v.vacina.uuid)
-                    const vacinaUuid = v.vacinaUuid || v.vacina?.uuid;
+                    // ✅ BUSCAR UUID DA VACINA - MÚLTIPLAS TENTATIVAS
+                    const vacinaUuid = v.vacinaUuid || 
+                                      v.vacina?.uuid || 
+                                      v.vacina_uuid ||
+                                      v.vacina?.id;
+                    
+                    // Log detalhado para debug (apenas primeiras 3 vacinações)
+                    if (index < 3) {
+                        console.log(`🔍 Vacinação #${index + 1}:`, {
+                            uuid: v.uuid,
+                            dataAplicacao: v.dataAplicacao,
+                            vacinaUuid: vacinaUuid,
+                            objetoCompleto: v
+                        });
+                    }
                     
                     if (vacinaUuid && mapaVacinas[vacinaUuid]) {
                         const nomeVacina = mapaVacinas[vacinaUuid];
                         contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
                         vacinacoesProcessadas++;
+                    } else {
+                        vacinacoesUuidNaoEncontrado++;
+                        if (index < 3) {
+                            console.warn(`⚠️ UUID da vacina não encontrado na vacinação #${index + 1}`);
+                        }
                     }
                 }
             });
 
             console.log('📊 Vacinações processadas (últimos 30 dias):', vacinacoesProcessadas);
+            console.log('⚠️ Vacinações sem UUID de vacina:', vacinacoesUuidNaoEncontrado);
             console.log('📊 Contador de vacinas:', contador);
+
+            // ✅ FALLBACK: Se não encontrou nenhuma vacina no método rápido, buscar detalhes
+            if (vacinacoesProcessadas === 0 && vacinacoesUuidNaoEncontrado > 0) {
+                console.warn('⚠️ Nenhuma vacina encontrada no método rápido. Buscando detalhes...');
+                
+                // Filtrar vacinações dos últimos 30 dias
+                const vacinacoesRecentes = vacinacoes.filter(v => {
+                    if (!v.dataAplicacao) return false;
+                    
+                    let dataStr = v.dataAplicacao;
+                    if (dataStr.includes('/')) {
+                        const [dia, mes, ano] = dataStr.split('/');
+                        dataStr = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    }
+                    
+                    const dataVacinacao = new Date(dataStr);
+                    return dataVacinacao >= dia30Atras && dataVacinacao <= hoje;
+                });
+
+                console.log(`🔍 Buscando detalhes de ${vacinacoesRecentes.length} vacinações recentes...`);
+
+                // Buscar detalhes de cada vacinação
+                for (const v of vacinacoesRecentes) {
+                    try {
+                        const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        
+                        if (respDetalhe.ok) {
+                            const detalhe = await respDetalhe.json();
+                            
+                            let detalheDados = null;
+                            if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
+                                detalheDados = detalhe.dados[0][0];
+                            } else if (Array.isArray(detalhe?.dados)) {
+                                detalheDados = detalhe.dados[0];
+                            } else if (detalhe?.dados) {
+                                detalheDados = detalhe.dados;
+                            } else {
+                                detalheDados = detalhe;
+                            }
+                            
+                            // Extrair nome da vacina
+                            const nomeVacina = detalheDados?.vacina?.nome;
+                            
+                            if (nomeVacina) {
+                                contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
+                                vacinacoesProcessadas++;
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('⚠️ Erro ao buscar detalhe da vacinação:', err);
+                    }
+                }
+
+                console.log('📊 Vacinações processadas (após busca detalhada):', vacinacoesProcessadas);
+                console.log('📊 Contador atualizado:', contador);
+            }
 
             if (vacinacoesProcessadas === 0) {
                 if (container) {
