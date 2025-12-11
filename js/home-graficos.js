@@ -224,29 +224,29 @@
         });
     }
 
-    // ===== GRÁFICO 2: TOP 5 VACINAS DOS ÚLTIMOS 30 DIAS - CORRIGIDO =====
+    // ===== GRÁFICO 2: TOP 5 VACINAS DOS ÚLTIMOS 30 DIAS - OTIMIZADO =====
     async function carregarGraficoTopVacinas() {
         const container = document.getElementById('graficoTopVacinas');
         
         try {
-            // Mostrar loading
             if (container) {
                 container.innerHTML = '<div class="loading-chart"><i class="fa-solid fa-spinner fa-spin"></i><p>Carregando...</p></div>';
             }
 
-            const response = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
+            // ✅ PASSO 1: Carregar todas as vacinações
+            const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
 
-            if (!response.ok) throw new Error('Erro ao carregar vacinações');
+            if (!responseVacinacoes.ok) throw new Error('Erro ao carregar vacinações');
 
-            const data = await response.json();
+            const dataVacinacoes = await responseVacinacoes.json();
             let vacinacoes = [];
             
-            if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
-                vacinacoes = data.dados[0];
-            } else if (Array.isArray(data?.dados)) {
-                vacinacoes = data.dados;
+            if (Array.isArray(dataVacinacoes?.dados) && Array.isArray(dataVacinacoes.dados[0])) {
+                vacinacoes = dataVacinacoes.dados[0];
+            } else if (Array.isArray(dataVacinacoes?.dados)) {
+                vacinacoes = dataVacinacoes.dados;
             }
 
             console.log('📊 Total de vacinações carregadas:', vacinacoes.length);
@@ -258,53 +258,46 @@
                 return;
             }
 
-            // ✅ BUSCAR DETALHES DE CADA VACINAÇÃO (para pegar nome da vacina)
-            console.log('🔍 Buscando detalhes das vacinações para obter nomes das vacinas...');
-            const vacinacoesComDetalhes = [];
+            // ✅ PASSO 2: Carregar todas as vacinas (para fazer o mapeamento UUID -> Nome)
+            const responseVacinas = await fetch(`${API_BASE}/vacina/all?size=1000&page=0`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (!responseVacinas.ok) throw new Error('Erro ao carregar vacinas');
+
+            const dataVacinas = await responseVacinas.json();
+            let vacinas = [];
             
-            for (const v of vacinacoes) {
-                try {
-                    const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
-                        headers: { "Authorization": `Bearer ${token}` }
-                    });
-                    
-                    if (respDetalhe.ok) {
-                        const detalhe = await respDetalhe.json();
-                        
-                        let detalheDados = null;
-                        if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
-                            detalheDados = detalhe.dados[0][0];
-                        } else if (Array.isArray(detalhe?.dados)) {
-                            detalheDados = detalhe.dados[0];
-                        } else if (detalhe?.dados) {
-                            detalheDados = detalhe.dados;
-                        } else {
-                            detalheDados = detalhe;
-                        }
-                        
-                        if (detalheDados) {
-                            vacinacoesComDetalhes.push({
-                                ...v,
-                                vacinaDetalhada: detalheDados.vacina,
-                                pessoaDetalhada: detalheDados.pessoa
-                            });
-                        }
-                    }
-                } catch (err) {
-                    console.warn('⚠️ Erro ao buscar detalhe da vacinação:', err);
-                }
+            if (Array.isArray(dataVacinas?.dados) && Array.isArray(dataVacinas.dados[0])) {
+                vacinas = dataVacinas.dados[0];
+            } else if (Array.isArray(dataVacinas?.dados)) {
+                vacinas = dataVacinas.dados;
             }
 
-            console.log('📊 Vacinações com detalhes:', vacinacoesComDetalhes.length);
+            console.log('💉 Total de vacinas cadastradas:', vacinas.length);
 
-            // ✅ Filtrar últimos 30 dias
+            // ✅ PASSO 3: Criar mapa UUID -> Nome da Vacina
+            const mapaVacinas = {};
+            vacinas.forEach(vacina => {
+                if (vacina.uuid && vacina.nome) {
+                    mapaVacinas[vacina.uuid] = vacina.nome;
+                }
+            });
+
+            console.log('🗺️ Mapa de vacinas criado:', Object.keys(mapaVacinas).length, 'vacinas');
+
+            // ✅ PASSO 4: Filtrar últimos 30 dias e contar
             const hoje = new Date();
             const dia30Atras = new Date(hoje);
             dia30Atras.setDate(hoje.getDate() - 30);
 
-            const vacinacoesRecentes = vacinacoesComDetalhes.filter(v => {
-                if (!v.dataAplicacao) return false;
+            const contador = {};
+            let vacinacoesProcessadas = 0;
+
+            vacinacoes.forEach(v => {
+                if (!v.dataAplicacao) return;
                 
+                // Converter data
                 let dataStr = v.dataAplicacao;
                 if (dataStr.includes('/')) {
                     const [dia, mes, ano] = dataStr.split('/');
@@ -312,33 +305,43 @@
                 }
                 
                 const dataVacinacao = new Date(dataStr);
-                return dataVacinacao >= dia30Atras && dataVacinacao <= hoje;
+                
+                // Verificar se está nos últimos 30 dias
+                if (dataVacinacao >= dia30Atras && dataVacinacao <= hoje) {
+                    // Buscar UUID da vacina (pode estar em v.vacinaUuid ou v.vacina.uuid)
+                    const vacinaUuid = v.vacinaUuid || v.vacina?.uuid;
+                    
+                    if (vacinaUuid && mapaVacinas[vacinaUuid]) {
+                        const nomeVacina = mapaVacinas[vacinaUuid];
+                        contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
+                        vacinacoesProcessadas++;
+                    }
+                }
             });
 
-            console.log('📊 Vacinações nos últimos 30 dias:', vacinacoesRecentes.length);
+            console.log('📊 Vacinações processadas (últimos 30 dias):', vacinacoesProcessadas);
+            console.log('📊 Contador de vacinas:', contador);
 
-            if (vacinacoesRecentes.length === 0) {
+            if (vacinacoesProcessadas === 0) {
                 if (container) {
                     container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Nenhuma vacinação nos últimos 30 dias</p></div>';
                 }
                 return;
             }
 
-            // ✅ Contar vacinas
-            const contador = {};
-            vacinacoesRecentes.forEach(v => {
-                const nomeVacina = v.vacinaDetalhada?.nome || 'Não informado';
-                contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
-            });
-
-            console.log('📊 Contador final:', contador);
-
-            // Ordenar e pegar top 5
+            // ✅ PASSO 5: Ordenar e pegar top 5
             const top5 = Object.entries(contador)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
 
-            console.log('🏆 Top 5 dos últimos 30 dias:', top5);
+            console.log('🏆 Top 5 vacinas dos últimos 30 dias:', top5);
+
+            if (top5.length === 0) {
+                if (container) {
+                    container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Nenhum dado disponível</p></div>';
+                }
+                return;
+            }
 
             desenharGraficoBarrasHorizontal('graficoTopVacinas', top5);
 
@@ -636,11 +639,12 @@
         });
     }
 
-    // ===== GRÁFICO 4: CADASTRADOS VS VACINADOS =====
+    // ===== GRÁFICO 4: CADASTRADOS VS VACINADOS - OTIMIZADO =====
     async function carregarGraficoCadastradosVacinados() {
         try {
             console.log('📊 Iniciando carregamento do gráfico de comparação...');
             
+            // ✅ PASSO 1: Buscar total de pessoas cadastradas
             const responsePessoas = await fetch(`${API_BASE}/pessoa?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -648,8 +652,6 @@
             if (!responsePessoas.ok) throw new Error('Erro ao carregar pessoas');
 
             const dataPessoas = await responsePessoas.json();
-            console.log('📦 Resposta pessoas:', dataPessoas);
-            
             let pessoas = [];
             
             if (Array.isArray(dataPessoas?.dados) && Array.isArray(dataPessoas.dados[0])) {
@@ -661,6 +663,7 @@
             const totalCadastrados = pessoas.length;
             console.log('👥 Total de pessoas cadastradas:', totalCadastrados);
 
+            // ✅ PASSO 2: Buscar todas as vacinações
             const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -668,8 +671,6 @@
             if (!responseVacinacoes.ok) throw new Error('Erro ao carregar vacinações');
 
             const dataVacinacoes = await responseVacinacoes.json();
-            console.log('📦 Resposta vacinações:', dataVacinacoes);
-            
             let vacinacoes = [];
             
             if (Array.isArray(dataVacinacoes?.dados) && Array.isArray(dataVacinacoes.dados[0])) {
@@ -679,45 +680,28 @@
             }
 
             console.log('💉 Total de registros de vacinação:', vacinacoes.length);
-            console.log('📊 Amostra de vacinações:', vacinacoes.slice(0, 3));
 
-            // ✅ CORREÇÃO: Contar pessoas únicas vacinadas
-            const pessoasVacinadas = new Set();
+            // ✅ PASSO 3: Contar pessoas ÚNICAS vacinadas usando Set
+            const pessoasVacinadasSet = new Set();
             
-            vacinacoes.forEach((v, index) => {
-                // Tentar diferentes caminhos para o UUID da pessoa
-                let pessoaUuid = null;
-                
-                if (v.pessoa && v.pessoa.uuid) {
-                    pessoaUuid = v.pessoa.uuid;
-                } else if (v.pessoaUuid) {
-                    pessoaUuid = v.pessoaUuid;
-                } else if (v.pessoa_uuid) {
-                    pessoaUuid = v.pessoa_uuid;
-                }
+            vacinacoes.forEach(v => {
+                // Tentar diferentes caminhos para encontrar o UUID da pessoa
+                const pessoaUuid = v.pessoaUuid || v.pessoa?.uuid || v.pessoa_uuid;
                 
                 if (pessoaUuid) {
-                    pessoasVacinadas.add(pessoaUuid);
-                    if (index < 5) {
-                        console.log(`✅ Pessoa vacinada #${index + 1}: ${pessoaUuid}`);
-                    }
-                } else {
-                    console.warn('⚠️ Vacinação sem UUID de pessoa:', v);
+                    pessoasVacinadasSet.add(pessoaUuid);
                 }
             });
 
-            const totalVacinados = pessoasVacinadas.size;
+            let totalVacinados = pessoasVacinadasSet.size;
+            console.log('📊 Pessoas únicas vacinadas (primeira tentativa):', totalVacinados);
 
-            console.log('📊 Total de pessoas ÚNICAS vacinadas:', totalVacinados);
-            console.log('📊 Total cadastrados:', totalCadastrados);
-            console.log('📊 Pessoas vacinadas (Set):', Array.from(pessoasVacinadas).slice(0, 5));
-
-            // Se não encontrou nenhuma pessoa vacinada, fazer uma busca mais detalhada
+            // ✅ PASSO 4: Se não encontrou nenhuma pessoa, fazer busca detalhada (fallback)
             if (totalVacinados === 0 && vacinacoes.length > 0) {
-                console.warn('⚠️ Nenhuma pessoa vacinada encontrada. Buscando detalhes...');
+                console.warn('⚠️ Nenhuma pessoa encontrada no primeiro método. Tentando busca detalhada...');
                 
-                // Tentar buscar os detalhes de cada vacinação
-                for (let i = 0; i < Math.min(vacinacoes.length, 5); i++) {
+                // Buscar detalhes de uma amostra (primeiras 10 vacinações)
+                for (let i = 0; i < Math.min(vacinacoes.length, 10); i++) {
                     const v = vacinacoes[i];
                     if (v.uuid) {
                         try {
@@ -727,7 +711,6 @@
                             
                             if (respDetalhe.ok) {
                                 const detalhe = await respDetalhe.json();
-                                console.log(`🔍 Detalhe vacinação #${i + 1}:`, detalhe);
                                 
                                 let detalheDados = null;
                                 if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
@@ -740,24 +723,35 @@
                                     detalheDados = detalhe;
                                 }
                                 
-                                if (detalheDados && detalheDados.pessoa && detalheDados.pessoa.uuid) {
-                                    pessoasVacinadas.add(detalheDados.pessoa.uuid);
-                                    console.log(`✅ Pessoa encontrada via detalhe: ${detalheDados.pessoa.uuid}`);
+                                const pessoaUuid = detalheDados?.pessoaUuid || detalheDados?.pessoa?.uuid;
+                                if (pessoaUuid) {
+                                    pessoasVacinadasSet.add(pessoaUuid);
+                                    console.log(`✅ Pessoa encontrada via detalhe: ${pessoaUuid}`);
                                 }
                             }
                         } catch (err) {
-                            console.error('Erro ao buscar detalhe:', err);
+                            console.warn('⚠️ Erro ao buscar detalhe da vacinação:', err);
                         }
                     }
                 }
+                
+                totalVacinados = pessoasVacinadasSet.size;
+                console.log('📊 Pessoas únicas vacinadas (após busca detalhada):', totalVacinados);
             }
 
-            const totalVacinadosFinal = pessoasVacinadas.size;
-            console.log('📊 Total FINAL de pessoas vacinadas:', totalVacinadosFinal);
+            // ✅ PASSO 5: Log detalhado para debug
+            console.log('═══════════════════════════════════════');
+            console.log('📊 RESUMO DO GRÁFICO DE COMPARAÇÃO');
+            console.log('═══════════════════════════════════════');
+            console.log(`👥 Total Cadastrados: ${totalCadastrados}`);
+            console.log(`💉 Total Vacinados: ${totalVacinados}`);
+            console.log(`📈 Cobertura: ${totalCadastrados > 0 ? ((totalVacinados / totalCadastrados) * 100).toFixed(1) : 0}%`);
+            console.log('═══════════════════════════════════════');
 
+            // ✅ PASSO 6: Desenhar gráfico
             desenharGraficoComparacao('graficoCadastradosVacinados', {
                 cadastrados: totalCadastrados,
-                vacinados: totalVacinadosFinal
+                vacinados: totalVacinados
             });
 
         } catch (error) {
@@ -839,7 +833,7 @@
                 </div>
             </div>
 
-                <div class="comparison-item">
+            <div class="comparison-item">
                 <div class="comparison-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
                     <div class="comparison-label" style="
                         font-size: 1.15rem;
