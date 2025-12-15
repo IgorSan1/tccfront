@@ -13,7 +13,6 @@
             }).join(''));
             return JSON.parse(jsonPayload);
         } catch (e) {
-            console.error("Erro ao decodificar token:", e);
             return null;
         }
     }
@@ -71,30 +70,15 @@
         const decodedToken = decodeJWT(token);
         const role = decodedToken?.role;
 
-        console.log("🔐 Role do usuário:", role);
-
-        // APENAS se for ADMIN, mostrar os botões administrativos
         const btnCadastroUsuario = document.getElementById("btnCadastroUsuario");
         const btnListarUsuarios = document.getElementById("btnListarUsuarios");
         
         if (role === 'ADMIN') {
-            if (btnCadastroUsuario) {
-                btnCadastroUsuario.style.display = "";
-                console.log("✅ Botão de cadastro de usuário VISÍVEL (ADMIN)");
-            }
-            if (btnListarUsuarios) {
-                btnListarUsuarios.style.display = "";
-                console.log("✅ Botão de listar usuários VISÍVEL (ADMIN)");
-            }
+            if (btnCadastroUsuario) btnCadastroUsuario.style.display = "";
+            if (btnListarUsuarios) btnListarUsuarios.style.display = "";
         } else {
-            if (btnCadastroUsuario) {
-                btnCadastroUsuario.style.display = "none";
-                console.log("🚫 Botão de cadastro de usuário OCULTO (não é ADMIN)");
-            }
-            if (btnListarUsuarios) {
-                btnListarUsuarios.style.display = "none";
-                console.log("🚫 Botão de listar usuários OCULTO (não é ADMIN)");
-            }
+            if (btnCadastroUsuario) btnCadastroUsuario.style.display = "none";
+            if (btnListarUsuarios) btnListarUsuarios.style.display = "none";
         }
     }
 
@@ -172,7 +156,7 @@
         searchBar.placeholder = "Buscando...";
 
         try {
-            console.log("🔍 Buscando paciente com CPF:", cpf);
+            
             
             const resp = await fetch(`${API_BASE}/pessoa/buscar-por-cpf`, {
                 method: "POST",
@@ -192,7 +176,7 @@
                         "Este CPF não está cadastrado no sistema ou o paciente foi removido.\n\n" +
                         "Verifique se o CPF está correto ou cadastre um novo paciente."
                     );
-                    console.log("❌ Paciente não encontrado ou inativo para CPF:", cpf);
+                    
                 } else if (resp.status === 401) {
                     alert("❌ Sessão expirada. Faça login novamente.");
                     localStorage.removeItem("token");
@@ -200,7 +184,7 @@
                 } else {
                     const data = await resp.json().catch(() => ({}));
                     alert(`❌ Erro ao buscar paciente: ${data?.mensagem || 'Erro desconhecido'}`);
-                    console.error("Erro na busca:", data);
+                    
                 }
                 return;
             }
@@ -226,11 +210,11 @@
                         "Este paciente foi removido do sistema e não pode mais ser acessado.\n\n" +
                         "Entre em contato com um administrador se precisar reativar o cadastro."
                     );
-                    console.log("❌ Tentativa de acesso a paciente inativo:", pessoa.nomeCompleto);
+                    
                     return;
                 }
 
-                console.log("✅ Paciente encontrado:", pessoa.nomeCompleto);
+                
                 localStorage.setItem("pacienteSelecionado", JSON.stringify(pessoa));
                 window.location.href = `paciente-detalhes.html?cpf=${cpf}`;
             } else {
@@ -239,10 +223,10 @@
                     "Os dados retornados estão incompletos.\n\n" +
                     "Tente novamente ou entre em contato com o suporte."
                 );
-                console.error("Dados do paciente inválidos:", pessoa);
+                
             }
         } catch (err) {
-            console.error("❌ Erro ao buscar paciente:", err);
+            
             alert(
                 "❌ Erro de Conexão\n\n" +
                 "Não foi possível conectar ao servidor.\n\n" +
@@ -256,3 +240,7 @@
         }
     }
 })();
+
+
+
+

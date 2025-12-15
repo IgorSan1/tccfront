@@ -170,7 +170,7 @@
         msgVazio.style.display = 'none';
 
         try {
-            console.log("📥 Carregando vacinas...");
+            
 
             const response = await fetch(`${API_BASE}/vacina?size=1000&page=0`, {
                 method: "GET",
@@ -185,7 +185,7 @@
             }
 
             const data = await response.json();
-            console.log("📦 Resposta da API:", data);
+            
 
             let vacinas = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -197,13 +197,10 @@
             todasVacinas = vacinas;
             vacinasFiltradas = [...vacinas];
 
-            console.log(`✅ ${vacinas.length} vacinas carregadas`);
-            console.log(`📊 Ordenação configurada: ${ordenacaoAtual.campo} (${ordenacaoAtual.direcao})`);
-
             renderizarTabela(vacinas);
 
         } catch (error) {
-            console.error("❌ Erro ao carregar vacinas:", error);
+            
             alert("Erro ao carregar vacinas. Verifique sua conexão.");
         } finally {
             loading.style.display = 'none';
@@ -228,9 +225,8 @@
         // ✅ APLICAR ORDENAÇÃO (por data de fabricação - mais recente primeiro)
         const vacinasOrdenadas = ordenarVacinas(vacinas);
 
-        console.log("📊 Primeiras 3 vacinas após ordenação:");
+        
         vacinasOrdenadas.slice(0, 3).forEach((v, i) => {
-            console.log(`${i + 1}. ${v.nome} - Fabricação: ${formatarData(v.dataFabricacao)}`);
         });
 
         // Calcular paginação
@@ -294,8 +290,6 @@
 
         // Criar/atualizar paginação
         criarPaginacao(vacinasOrdenadas.length);
-
-        console.log(`✅ ${vacinasPaginadas.length} vacinas renderizadas na tabela (Página ${paginaAtual} de ${totalPaginas})`);
     }
 
     // ===== PAGINAÇÃO =====
@@ -485,7 +479,7 @@
 
     // ===== MODAL DE EDIÇÃO =====
     window.abrirModalEdicaoVacina = function(vacina) {
-        console.log("📝 Abrindo modal de edição:", vacina);
+        
         
         vacinaEmEdicao = vacina;
         
@@ -536,7 +530,7 @@
             dataValidade
         };
 
-        console.log("📤 Atualizando vacina:", payload);
+        
 
         try {
             const response = await fetch(`${API_BASE}/vacina/${vacinaUuid}`, {
@@ -557,7 +551,7 @@
                 alert(`Erro ao atualizar vacina: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            console.error("❌ Erro ao atualizar vacina:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     });
@@ -571,7 +565,7 @@
 
         if (!confirmacao) return;
 
-        console.log("🗑️ Excluindo vacina:", uuid);
+        
 
         try {
             const response = await fetch(`${API_BASE}/vacina/${uuid}`, {
@@ -589,7 +583,7 @@
                 alert(`Erro ao excluir vacina: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            console.error("❌ Erro ao excluir vacina:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     };
@@ -702,3 +696,6 @@
 
     carregarVacinas();
 })();
+
+
+

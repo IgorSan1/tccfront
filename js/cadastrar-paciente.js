@@ -13,15 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const comunidade = document.getElementById("comunidade").value.trim();
         const comorbidade = document.getElementById("comorbidade").value.trim(); // ✅ CORRIGIDO
 
-        console.log("📝 Dados capturados do formulário:");
-        console.log("- CNS:", cns);
-        console.log("- CPF:", cpf);
-        console.log("- Nascimento:", nascimento);
-        console.log("- Nome:", nomeCompleto);
-        console.log("- Etnia:", etnia);
-        console.log("- Sexo:", sexo);
-        console.log("- Comunidade:", comunidade);
-        console.log("- Comorbidade:", comorbidade); // ✅ VERIFICAR NO CONSOLE
+        
+        
+        
+        
+        
+        
+        
+        
+         // ✅ VERIFICAR NO CONSOLE
 
         // Validações básicas
         if (!cns || !cpf || !nascimento || !nomeCompleto || !etnia || !sexo || !comunidade) {
@@ -57,9 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
             comunidade
         };
 
-        console.log("📤 Payload que será enviado para o backend:");
-        console.log(JSON.stringify(data, null, 2));
-
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -68,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            console.log("🔐 Token encontrado, enviando requisição...");
+            
 
             const response = await fetch("/api/v1/pessoa", {
                 method: "POST",
@@ -79,21 +76,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(data)
             });
 
-            console.log("📥 Status da resposta:", response.status);
+            
 
             if (response.ok) {
                 const result = await response.json();
-                console.log("✅ Resposta do servidor:", result);
+                
                 alert(result.mensagem || "Paciente cadastrado com sucesso!");
                 form.reset();
                 window.location.href = "home.html";
             } else {
                 const errorData = await response.json().catch(() => ({ mensagem: response.statusText }));
-                console.error("❌ Erro do servidor:", errorData);
+                
                 alert(`Erro ao cadastrar paciente: ${errorData.mensagem}`);
             }
         } catch (error) {
-            console.error("❌ Erro na requisição:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     });
@@ -137,3 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+
+

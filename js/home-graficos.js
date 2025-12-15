@@ -3,7 +3,7 @@
     const token = localStorage.getItem("token");
 
     if (!token) {
-        console.error("Token não encontrado");
+        
         return;
     }
 
@@ -101,7 +101,7 @@
             desenharGraficoLinha('graficoVacinacoesPeriodo', labels, valores);
 
         } catch (error) {
-            console.error('Erro ao carregar gráfico de período:', error);
+            
         }
     }
 
@@ -233,7 +233,7 @@
             container.innerHTML = '<div class="loading-chart"><i class="fa-solid fa-spinner fa-spin"></i><p>Carregando...</p></div>';
         }
 
-        console.log('📊 Iniciando carregamento do Top 5 Vacinas...');
+        
 
         // PASSO 1: Carregar todas as vacinações
         const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
@@ -251,7 +251,7 @@
             vacinacoes = dataVacinacoes.dados;
         }
 
-        console.log('📊 Total de vacinações carregadas:', vacinacoes.length);
+        
 
         if (vacinacoes.length === 0) {
             if (container) {
@@ -278,7 +278,7 @@
             return dataVacinacao >= dia30Atras && dataVacinacao <= hoje;
         });
 
-        console.log('📊 Vacinações dos últimos 30 dias:', vacinacoesRecentes.length);
+        
 
         if (vacinacoesRecentes.length === 0) {
             if (container) {
@@ -288,7 +288,7 @@
         }
 
         // PASSO 3: Carregar TODAS as vacinas para criar mapa
-        console.log('📥 Carregando lista de vacinas...');
+        
         const responseVacinas = await fetch(`${API_BASE}/vacina/all?size=1000&page=0`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
@@ -304,7 +304,7 @@
             vacinas = dataVacinas.dados;
         }
 
-        console.log('📦 Total de vacinas no sistema:', vacinas.length);
+        
 
         // PASSO 4: Criar mapa UUID -> Nome
         const mapaVacinas = {};
@@ -313,8 +313,6 @@
                 mapaVacinas[vacina.uuid] = vacina.nome;
             }
         });
-
-        console.log('🗺️ Mapa de vacinas criado:', Object.keys(mapaVacinas).length, 'entradas');
 
         // PASSO 5: Buscar detalhes e contar
         const contador = {};
@@ -353,27 +351,27 @@
                         const nomeVacina = mapaVacinas[vacinaUuid];
                         contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
                         sucesso++;
-                        console.log(`✅ ${processadas + 1}: ${nomeVacina}`);
+                        
                     } else {
-                        console.warn(`⚠️ UUID não encontrado:`, vacinaUuid);
+                        
                     }
                 }
                 processadas++;
             } catch (err) {
-                console.warn('⚠️ Erro:', err);
+                
                 processadas++;
             }
         }
 
-        console.log(`📊 Processadas: ${sucesso}/${processadas}`);
-        console.log('📊 Contador:', contador);
+        
+        
 
         // PASSO 6: Top 5
         const top5 = Object.entries(contador)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
-        console.log('🏆 Top 5:', top5);
+        
 
         if (top5.length === 0) {
             if (container) {
@@ -385,7 +383,7 @@
         desenharGraficoBarrasHorizontal('graficoTopVacinas', top5);
 
     } catch (error) {
-        console.error('❌ Erro:', error);
+        
         if (container) {
             container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
         }
@@ -549,7 +547,7 @@
             desenharLegenda('legendaFaixaEtaria', dados);
 
         } catch (error) {
-            console.error('Erro ao carregar faixa etária:', error);
+            
         }
     }
 
@@ -681,7 +679,7 @@
     // ===== GRÁFICO 4: CADASTRADOS VS VACINADOS - OTIMIZADO V2 =====
     async function carregarGraficoCadastradosVacinados() {
         try {
-            console.log('📊 Iniciando carregamento do gráfico de comparação...');
+            
             
             // ✅ PASSO 1: Buscar total de pessoas cadastradas
             const responsePessoas = await fetch(`${API_BASE}/pessoa?size=1000&page=0`, {
@@ -700,7 +698,7 @@
             }
 
             const totalCadastrados = pessoas.length;
-            console.log('👥 Total de pessoas cadastradas:', totalCadastrados);
+            
 
             // ✅ PASSO 2: Buscar todas as vacinações
             const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
@@ -718,20 +716,20 @@
                 vacinacoes = dataVacinacoes.dados;
             }
 
-            console.log('💉 Total de registros de vacinação:', vacinacoes.length);
+            
 
             // ✅ PASSO 3: Verificar se o backend retorna dados da pessoa na listagem
             const primeiraVacinacao = vacinacoes[0];
             const temDadosPessoa = !!(primeiraVacinacao?.pessoaUuid || 
                                      primeiraVacinacao?.pessoa?.uuid);
 
-            console.log('🔍 Backend retorna dados da pessoa na listagem?', temDadosPessoa);
+            
 
             const pessoasVacinadasSet = new Set();
 
             if (temDadosPessoa) {
                 // ✅ MÉTODO RÁPIDO: Backend retorna os dados
-                console.log('⚡ Usando método rápido para contar pessoas vacinadas...');
+                
                 
                 vacinacoes.forEach(v => {
                     const pessoaUuid = v.pessoaUuid || v.pessoa?.uuid || v.pessoa_uuid;
@@ -742,7 +740,6 @@
                 });
             } else {
                 // ✅ MÉTODO DETALHADO: Backend NÃO retorna os dados
-                console.log('🔍 Usando método detalhado (busca individual) para contar pessoas vacinadas...');
                 
                 // Buscar detalhes de cada vacinação
                 for (const v of vacinacoes) {
@@ -775,7 +772,7 @@
                             }
                         }
                     } catch (err) {
-                        console.warn('⚠️ Erro ao buscar detalhe da vacinação:', err);
+                        
                     }
                 }
             }
@@ -783,13 +780,7 @@
             const totalVacinados = pessoasVacinadasSet.size;
 
             // ✅ PASSO 4: Log detalhado para debug
-            console.log('═══════════════════════════════════════');
-            console.log('📊 RESUMO DO GRÁFICO DE COMPARAÇÃO');
-            console.log('═══════════════════════════════════════');
-            console.log(`👥 Total Cadastrados: ${totalCadastrados}`);
-            console.log(`💉 Total Vacinados: ${totalVacinados}`);
-            console.log(`📈 Cobertura: ${totalCadastrados > 0 ? ((totalVacinados / totalCadastrados) * 100).toFixed(1) : 0}%`);
-            console.log('═══════════════════════════════════════');
+            
 
             // ✅ PASSO 5: Desenhar gráfico
             desenharGraficoComparacao('graficoCadastradosVacinados', {
@@ -798,7 +789,7 @@
             });
 
         } catch (error) {
-            console.error('❌ Erro ao carregar comparação:', error);
+            
             const container = document.getElementById('graficoCadastradosVacinados');
             if (container) {
                 container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
@@ -976,7 +967,7 @@
 
     // ===== INICIALIZAR TODOS OS GRÁFICOS =====
     function inicializarGraficos() {
-        console.log('📊 Carregando gráficos do dashboard...');
+        
         carregarGraficoVacinacoesPeriodo();
         carregarGraficoTopVacinas();
         carregarGraficoFaixaEtaria();
@@ -989,3 +980,6 @@
         setTimeout(inicializarGraficos, 500);
     }
 })();
+
+
+

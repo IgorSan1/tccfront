@@ -18,7 +18,7 @@
 
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("🔐 Verificando permissão - Role:", payload.role);
+            
             
             if (payload.role !== 'ADMIN') {
                 alert("⚠️ ACESSO NEGADO\n\nApenas administradores podem acessar esta página.");
@@ -28,7 +28,7 @@
             
             return true;
         } catch (e) {
-            console.error("❌ Erro ao verificar permissão:", e);
+            
             alert("Sessão inválida. Faça login novamente.");
             localStorage.removeItem("token");
             window.location.href = "login.html";
@@ -106,7 +106,7 @@
         msgVazio.style.display = 'none';
 
         try {
-            console.log("📥 Carregando usuários...");
+            
 
             const response = await fetch(`${API_BASE}/usuario?size=1000&page=0`, {
                 method: "GET",
@@ -121,7 +121,7 @@
             }
 
             const data = await response.json();
-            console.log("📦 Resposta da API:", data);
+            
 
             let usuarios = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -133,12 +133,12 @@
             todosUsuarios = usuarios;
             usuariosFiltrados = [...usuarios];
 
-            console.log(`✅ ${usuarios.length} usuários carregados`);
+            
 
             renderizarTabela(usuarios);
 
         } catch (error) {
-            console.error("❌ Erro ao carregar usuários:", error);
+            
             alert("Erro ao carregar usuários. Verifique sua conexão.");
         } finally {
             loading.style.display = 'none';
@@ -229,12 +229,12 @@
             cellAcoes.appendChild(actionDiv);
         });
 
-        console.log(`✅ ${usuarios.length} usuários renderizados na tabela`);
+        
     }
 
     // ===== MODAL DE EDIÇÃO =====
     window.abrirModalEdicaoUsuario = function(usuario) {
-        console.log("📝 Abrindo modal de edição:", usuario);
+        
         
         usuarioEmEdicao = usuario;
         
@@ -319,7 +319,7 @@
             payload.password = senha;
         }
 
-        console.log("📤 Atualizando usuário:", payload);
+        
 
         try {
             const response = await fetch(`${API_BASE}/usuario/${usuarioUuid}`, {
@@ -340,7 +340,7 @@
                 alert(`Erro ao atualizar usuário: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            console.error("❌ Erro ao atualizar usuário:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     });
@@ -354,7 +354,7 @@
 
         if (!confirmacao) return;
 
-        console.log("🗑️ Excluindo usuário:", uuid);
+        
 
         try {
             const response = await fetch(`${API_BASE}/usuario/${uuid}`, {
@@ -372,7 +372,7 @@
                 alert(`Erro ao excluir usuário: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            console.error("❌ Erro ao excluir usuário:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     };
@@ -493,3 +493,6 @@
     // ===== INICIALIZAR =====
     carregarUsuarios();
 })();
+
+
+

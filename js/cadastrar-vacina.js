@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            console.log('Enviando vacina payload:', payload);
+            
             const response = await fetch(`${API_BASE}/vacina`, {
                 method: 'POST',
                 headers: {
@@ -91,9 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`Erro ao cadastrar vacina: ${errorData.mensagem}`);
             }
         } catch (err) {
-            console.error('Erro:', err);
+            
             alert('Falha de comunicação com o servidor.');
         }
     });
 });
+
+
+
+
 

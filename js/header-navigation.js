@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log("🔄 Inicializando menu de navegação...");
+    
 
     // ===== CONTROLE DE DROPDOWNS =====
     function initDropdowns() {
@@ -34,7 +34,7 @@
                 item.classList.toggle('active');
                 dropdown.classList.toggle('show');
 
-                console.log(`Dropdown ${isActive ? 'fechado' : 'aberto'}: ${item.id}`);
+                
             });
         });
 
@@ -51,7 +51,7 @@
             }
         });
 
-        console.log("✅ Dropdowns inicializados");
+        
     }
 
     // ===== CONTROLE DO MENU MOBILE =====
@@ -60,7 +60,7 @@
         const mainNav = document.getElementById('main-nav');
 
         if (!mobileToggle || !mainNav) {
-            console.warn("⚠️ Elementos do menu mobile não encontrados");
+            
             return;
         }
 
@@ -75,7 +75,7 @@
                 icon.className = isShowing ? 'fa-solid fa-bars' : 'fa-solid fa-times';
             }
 
-            console.log(`Menu mobile ${isShowing ? 'fechado' : 'aberto'}`);
+            
         });
 
         // Fechar menu mobile ao clicar fora
@@ -89,7 +89,7 @@
             }
         });
 
-        console.log("✅ Menu mobile inicializado");
+        
     }
 
     // ===== DESTACAR PÁGINA ATIVA =====
@@ -101,7 +101,7 @@
             const href = link.getAttribute('href');
             if (href && href.includes(currentPage)) {
                 link.classList.add('active');
-                console.log(`Página ativa destacada: ${currentPage}`);
+                
             }
         });
     }
@@ -119,26 +119,24 @@
             
             if (role === 'ADMIN' && navAdmin) {
                 navAdmin.style.display = '';
-                console.log("✅ Menu de administração visível (ADMIN)");
             } else if (navAdmin) {
                 navAdmin.style.display = 'none';
-                console.log("🚫 Menu de administração oculto (não é ADMIN)");
             }
         } catch (e) {
-            console.error("❌ Erro ao verificar permissões:", e);
+            
         }
     }
 
     // ===== INICIALIZAÇÃO =====
     function init() {
-        console.log("🚀 Inicializando sistema de navegação...");
+        
         
         initDropdowns();
         initMobileMenu();
         highlightActivePage();
         checkAdminPermissions();
         
-        console.log("✅ Sistema de navegação inicializado com sucesso");
+        
     }
 
     // Executar quando o DOM estiver pronto
@@ -149,3 +147,6 @@
     }
 
 })();
+
+
+

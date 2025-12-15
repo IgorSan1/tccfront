@@ -17,11 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Decodificar token para verificar permissões
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("=== INFORMAÇÕES DO TOKEN ===");
-            console.log("👤 Usuário:", payload.sub);
-            console.log("🔐 Role:", payload.role);
-            console.log("📅 Expira em:", new Date(payload.exp * 1000).toLocaleString());
-            console.log("============================");
+            
             
             // ✅ VERIFICAR SE É ADMIN
             if (payload.role !== 'ADMIN') {
@@ -30,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
             
-            console.log("✅ Acesso permitido - Usuário é ADMIN");
+            
             
             // Verificar se o token está expirado
             const agora = Math.floor(Date.now() / 1000);
@@ -41,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         } catch (e) {
-            console.error("❌ Erro ao decodificar token:", e);
+            
             alert("Sessão inválida. Faça login novamente.");
             localStorage.removeItem("token");
             window.location.href = "login.html";
@@ -148,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
             role
         };
 
-        console.log("📤 Enviando payload:", data);
+        
 
         try {
             const token = localStorage.getItem("token");
@@ -167,20 +163,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(data)
             });
 
-            console.log("📥 Status da resposta:", response.status);
+            
 
             if (response.ok) {
                 const result = await response.json();
-                console.log("✅ Resposta:", result);
+                
                 alert(result.mensagem || "Usuário cadastrado com sucesso!");
                 form.reset();
                 window.location.href = "home.html";
             } else if (response.status === 403) {
-                console.error("❌ Erro 403 - Acesso negado");
+                
                 alert("❌ ACESSO NEGADO\n\nApenas usuários ADMIN podem cadastrar novos usuários.\n\nVerifique seu perfil de acesso.");
             } else {
                 const errorData = await response.json().catch(() => ({ mensagem: response.statusText }));
-                console.error("❌ Erro:", errorData);
+                
                 
                 let mensagemErro = errorData.mensagem || errorData.message || 'Erro desconhecido';
                 
@@ -192,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert(`Erro ao cadastrar usuário:\n\n${mensagemErro}`);
             }
         } catch (error) {
-            console.error("❌ Erro na requisição:", error);
+            
             alert("Erro ao conectar com o servidor. Verifique sua conexão.");
         }
     });
@@ -208,3 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+
+
+

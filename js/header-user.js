@@ -1,5 +1,5 @@
 (function() {
-    console.log("🔄 Iniciando header-user.js...");
+    
 
     // Função para decodificar o token JWT
     function decodeJWT(token) {
@@ -11,19 +11,19 @@
             }).join(''));
             return JSON.parse(jsonPayload);
         } catch (e) {
-            console.error("Erro ao decodificar token:", e);
+            
             return null;
         }
     }
 
     // Função de logout
     function logout() {
-        console.log("🚪 Iniciando processo de logout...");
+        
         
         const confirmar = confirm("Deseja realmente sair do sistema?");
         
         if (!confirmar) {
-            console.log("❌ Logout cancelado pelo usuário");
+            
             return;
         }
 
@@ -33,13 +33,13 @@
             localStorage.removeItem("pacienteSelecionado");
             sessionStorage.clear();
             
-            console.log("✅ Dados limpos, redirecionando...");
+            
             
             // Redirecionar
             window.location.href = "login.html";
             
         } catch (error) {
-            console.error("❌ Erro ao fazer logout:", error);
+            
             alert("Erro ao fazer logout. Você será redirecionado para a página de login.");
             window.location.href = "login.html";
         }
@@ -47,18 +47,18 @@
 
     // Função para criar dropdown de usuário
     function criarDropdownUsuario() {
-        console.log("🔧 Criando dropdown de usuário...");
+        
         
         const userProfile = document.querySelector(".user-profile");
         
         if (!userProfile) {
-            console.warn("⚠️ Elemento .user-profile não encontrado");
+            
             return;
         }
 
         // Verificar se já existe dropdown
         if (userProfile.querySelector('.user-dropdown')) {
-            console.log("ℹ️ Dropdown já existe, pulando criação");
+            
             return;
         }
 
@@ -71,7 +71,7 @@
             
             // Adicionar depois do span
             userSpan.insertAdjacentElement('afterend', indicator);
-            console.log("✅ Indicador de dropdown adicionado");
+            
         }
 
         // Criar estrutura do dropdown
@@ -91,7 +91,7 @@
 
         // Adicionar dropdown ao DOM
         userProfile.appendChild(dropdown);
-        console.log("✅ Dropdown HTML criado");
+        
 
         userProfile.removeAttribute('href');
         userProfile.style.cursor = 'pointer';
@@ -100,7 +100,7 @@
         userProfile.addEventListener('click', function(e) {
             // Se clicou em um item do dropdown, não fazer nada aqui
             if (e.target.closest('.user-dropdown-item')) {
-                console.log("🎯 Clique em item do dropdown detectado");
+                
                 return;
             }
             
@@ -122,7 +122,7 @@
                 indicator.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             }
             
-            console.log("🔄 Dropdown", isOpen ? "fechado" : "aberto");
+            
         });
 
         // Fechar dropdown ao clicar fora
@@ -144,10 +144,10 @@
             btnLogout.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log("🔴 Botão de logout clicado");
+                
                 logout();
             });
-            console.log("✅ Evento de logout configurado");
+            
         }
 
         // Evento no link do perfil
@@ -156,10 +156,10 @@
             linkPerfil.addEventListener('click', function(e) {
                 // Permitir comportamento padrão do link
                 e.stopPropagation(); // Apenas impedir que o evento chegue ao user-profile
-                console.log("📍 Link do perfil clicado - navegando...");
+                
                 // O navegador vai navegar normalmente
             });
-            console.log("✅ Link do perfil configurado");
+            
         }
 
         // Fechar dropdown ao clicar em qualquer item
@@ -181,7 +181,7 @@
 
     // Inicialização principal
     function inicializar() {
-        console.log("🚀 Inicializando sistema de autenticação...");
+        
         
         // Verificar autenticação
         const token = localStorage.getItem("token");
@@ -189,7 +189,7 @@
         if (!token) {
             // Se não houver token e não estiver na página de login, redirecionar
             if (!window.location.href.includes('login.html')) {
-                console.warn("⚠️ Token não encontrado, redirecionando para login");
+                
                 window.location.href = "login.html";
             }
             return;
@@ -200,14 +200,14 @@
         const username = decodedToken?.sub;
         const role = decodedToken?.role;
 
-        console.log("👤 Usuário autenticado:", username, "| Role:", role);
+        
 
         // Atualizar nome do usuário no header
         if (username) {
             const userProfileSpan = document.querySelector(".user-profile span");
             if (userProfileSpan) {
                 userProfileSpan.textContent = username;
-                console.log("✅ Nome do usuário atualizado no header");
+                
             }
 
             // Adicionar badge de ADMIN
@@ -234,7 +234,7 @@
                     } else {
                         userProfile.appendChild(badge);
                     }
-                    console.log("✅ Badge ADMIN adicionado");
+                    
                 }
             }
         }
@@ -250,7 +250,7 @@
             window.location.href = "login.html";
         }
 
-        console.log("✅ Sistema de autenticação inicializado com sucesso");
+        
     }
 
     // Executar quando o DOM estiver pronto
@@ -261,3 +261,6 @@
     }
 
 })();
+
+
+

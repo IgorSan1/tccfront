@@ -13,7 +13,7 @@
             }).join(''));
             return JSON.parse(jsonPayload);
         } catch (e) {
-            console.error("Erro ao decodificar token:", e);
+            
             return null;
         }
     }
@@ -119,7 +119,7 @@
 
         // Verificar se é admin
         isAdmin = (role === 'ADMIN');
-        console.log("👤 Usuário logado:", username, "| Role:", role, "| Is Admin:", isAdmin);
+        
 
         try {
             // ✅ CORREÇÃO: Se for ADMIN, buscar na lista de usuários mesmo assim
@@ -133,14 +133,14 @@
             });
 
             if (!resp.ok) {
-                console.error("Erro ao carregar perfil:", resp.status);
+                
                 // ✅ Se não encontrou na tabela usuario, preencher dados básicos do token
                 preencherPerfilDoToken(decodedToken);
                 return;
             }
 
             const data = await resp.json().catch(() => ({}));
-            console.log("📦 Dados recebidos:", data);
+            
 
             let usuarios = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -152,24 +152,23 @@
             const usuario = usuarios.find(u => u.usuario === username);
 
             if (usuario) {
-                console.log("✅ Usuário encontrado na tabela usuario:", usuario);
+                
                 usuarioAtual = usuario;
                 preencherPerfil(usuario);
             } else {
                 // ✅ Se for ADMIN e não encontrou na tabela usuario, 
                 // mostrar dados do token (admin puro, sem registro em usuario)
-                console.warn("⚠️ Usuário ADMIN não encontrado na tabela usuario");
-                console.log("📝 Preenchendo dados básicos do token");
+                
+                
                 preencherPerfilDoToken(decodedToken);
             }
         } catch (err) {
-            console.error("❌ Erro ao carregar perfil:", err);
+            
             preencherPerfilDoToken(decodedToken);
         }
     }
 
     function preencherPerfilDoToken(decodedToken) {
-        console.log("📝 Preenchendo perfil a partir do token (ADMIN puro)");
         
         const headerUserSpan = document.querySelector(".user-profile span");
         if (headerUserSpan) {
@@ -229,7 +228,7 @@
     }
 
     function preencherPerfil(usuario) {
-        console.log("📝 Preenchendo perfil completo");
+        
         
         const headerUserSpan = document.querySelector(".user-profile span");
         if (headerUserSpan) {
@@ -252,7 +251,7 @@
             return;
         }
 
-        console.log("📝 Abrindo modal de edição do perfil");
+        
 
         document.getElementById('edit-usuario-uuid').value = usuarioAtual.uuid;
         document.getElementById('edit-usuario').value = usuarioAtual.usuario || '';
@@ -280,14 +279,14 @@
             campoCargo.style.color = '';
             campoCargo.style.cursor = '';
             avisoCargo.style.display = 'none';
-            console.log("✅ ADMIN - Campo cargo DESBLOQUEADO");
+            
         } else {
             campoCargo.disabled = true;
             campoCargo.style.backgroundColor = 'var(--input-background)';
             campoCargo.style.color = 'var(--text-secondary)';
             campoCargo.style.cursor = 'not-allowed';
             avisoCargo.style.display = 'block';
-            console.log("🚫 USER - Campo cargo BLOQUEADO");
+            
         }
 
         // ✅ REGRA: Apenas ADMIN pode alterar senha
@@ -301,12 +300,11 @@
             campoSenha.disabled = false;
             campoConfirmarSenha.disabled = false;
             avisoSenha.style.display = 'none';
-            console.log("✅ ADMIN - Alteração de senha PERMITIDA");
+            
         } else {
             secaoSeguranca.style.display = 'none';
             campoSenha.disabled = true;
             campoConfirmarSenha.disabled = true;
-            console.log("🚫 USER - Alteração de senha BLOQUEADA (seção oculta)");
         }
 
         document.getElementById('modal-editar-perfil').style.display = 'flex';
@@ -396,7 +394,7 @@
             payload.password = novaSenha;
         }
 
-        console.log("📤 Atualizando perfil:", payload);
+        
 
         try {
             const token = localStorage.getItem("token");
@@ -434,7 +432,7 @@
                 alert(`Erro ao atualizar perfil: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            console.error("❌ Erro ao atualizar perfil:", error);
+            
             alert("Erro ao conectar com o servidor.");
         }
     });
@@ -467,3 +465,6 @@
     // Carregar perfil ao inicializar
     carregarPerfilUsuario();
 })();
+
+
+

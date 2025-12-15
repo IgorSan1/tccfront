@@ -3,35 +3,35 @@
 
     // Função para realizar o logout
     function logout() {
-        console.log("🚪 Iniciando processo de logout...");
+        
         
         // Confirmar logout
         const confirmar = confirm("Deseja realmente sair do sistema?");
         
         if (!confirmar) {
-            console.log("❌ Logout cancelado pelo usuário");
+            
             return;
         }
 
         try {
             // Limpar o token do localStorage
             localStorage.removeItem("token");
-            console.log("✅ Token removido do localStorage");
+            
             
             // Limpar outros dados temporários se existirem
             localStorage.removeItem("pacienteSelecionado");
-            console.log("✅ Dados temporários removidos");
+            
             
             // Limpar sessionStorage também (caso tenha algo)
             sessionStorage.clear();
-            console.log("✅ SessionStorage limpo");
+            
             
             // Redirecionar para a página de login
-            console.log("🔄 Redirecionando para login...");
+            
             window.location.href = "login.html";
             
         } catch (error) {
-            console.error("❌ Erro ao fazer logout:", error);
+            
             alert("Erro ao fazer logout. Você será redirecionado para a página de login.");
             window.location.href = "login.html";
         }
@@ -42,13 +42,13 @@
         const userProfile = document.querySelector(".user-profile");
         
         if (!userProfile) {
-            console.warn("⚠️ Elemento .user-profile não encontrado");
+            
             return;
         }
 
         // Verificar se já existe dropdown
         if (userProfile.querySelector('.user-dropdown')) {
-            console.log("ℹ️ Dropdown já existe");
+            
             return;
         }
 
@@ -77,7 +77,7 @@
 
         // Adicionar dropdown ao user-profile
         userProfile.appendChild(dropdown);
-        console.log("✅ Dropdown criado com sucesso");
+        
 
         // Adicionar evento de clique no user-profile
         userProfile.addEventListener('click', function(e) {
@@ -102,7 +102,7 @@
                 e.stopPropagation();
                 logout();
             });
-            console.log("✅ Evento de logout configurado");
+            
         }
     }
 
@@ -113,7 +113,7 @@
         
         // Se não houver token e não estiver na página de login
         if (!token && paginaAtual !== 'login.html') {
-            console.warn("⚠️ Usuário não autenticado - redirecionando para login");
+            
             window.location.href = "login.html";
             return false;
         }
@@ -137,5 +137,8 @@
     // Expor função logout globalmente
     window.yaravacLogout = logout;
 
-    console.log("✅ Script de logout inicializado");
+    
 })();
+
+
+
