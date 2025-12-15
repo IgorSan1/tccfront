@@ -100,7 +100,6 @@
                 throw new Error(`Erro ao carregar pacientes: ${response.status}`);
             }
             const data = await response.json();
-            console.log("📦 Resposta da API:", data);
             let pacientes = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
                 pacientes = data.dados[0];
@@ -110,7 +109,7 @@
             todosPacientes = pacientes;
             pacientesFiltrados = [...pacientes];
             
-            console.log(`📊 Amostra de dados:`, pacientes.slice(0, 2));
+            
             renderizarTabela(pacientes);
         } catch (error) {
             
@@ -156,7 +155,6 @@
                 badgeStatus.className = `badge-status ${paciente.ativo ? 'ativo' : 'inativo'}`;
                 badgeStatus.textContent = paciente.ativo ? 'Ativo' : 'Inativo';
                 cellStatus.appendChild(badgeStatus);
-                console.log(`👤 ${paciente.nomeCompleto}: ativo=${paciente.ativo}`);
             }
             const cellAcoes = row.insertCell();
             cellAcoes.className = 'action-buttons-cell';
@@ -188,7 +186,6 @@
     }
     let pacienteParaReativar = null;
     window.abrirModalReativar = function(paciente) {
-        console.log("🔄 Abrindo modal para reativar:", paciente.nomeCompleto);
         pacienteParaReativar = paciente;
         document.getElementById('nome-paciente-reativar').textContent = paciente.nomeCompleto;
         document.getElementById('modal-reativar-paciente').style.display = 'flex';
@@ -203,7 +200,7 @@
             alert('Nenhum paciente selecionado para reativar.');
             return;
         }
-        console.log("🔄 Reativando paciente:", pacienteParaReativar.uuid ?? pacienteParaReativar.id);
+        
         try {
             const payload = {
                 nomeCompleto: pacienteParaReativar.nomeCompleto,
@@ -216,7 +213,7 @@
                 comunidade: pacienteParaReativar.comunidade,
                 ativo: true
             };
-            console.log("📤 Payload de reativação:", payload);
+            
             const uuidParaUso = pacienteParaReativar.uuid ?? pacienteParaReativar.id;
             const response = await fetch(`${API_BASE}/pessoa/${uuidParaUso}`, {
                 method: "PUT",
@@ -226,7 +223,7 @@
                 },
                 body: JSON.stringify(payload)
             });
-            console.log("📥 Status da resposta:", response.status);
+            
             if (response.ok || response.status === 204) {
                 alert(`Paciente "${pacienteParaReativar.nomeCompleto}" reativado com sucesso!`);
                 fecharModalReativar();
@@ -273,7 +270,6 @@
             if (isAdmin && filtroStatus) {
                 const statusBoolean = filtroStatus === 'true';
                 passaFiltroStatus = paciente.ativo === statusBoolean;
-                console.log(`🔍 Filtrando: ${paciente.nomeCompleto} - ativo=${paciente.ativo}, filtro=${statusBoolean}, passa=${passaFiltroStatus}`);
             }
             return passaFiltroCpf && passaFiltroStatus;
         });
