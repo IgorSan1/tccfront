@@ -10,12 +10,31 @@ const ApiService = (() => {
 
   const handleResponse = async (response) => {
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        mensagem: response.statusText 
-      }));
-      throw new Error(errorData.mensagem || 'Erro na requisição');
+      // Tenta obter JSON da resposta; se falhar, captura texto cru
+      let parsed;
+      try {
+        parsed = await response.json();
+      } catch (e) {
+        parsed = await response.text().catch(() => null);
+      }
+
+      const detail = parsed
+        ? (typeof parsed === 'string' ? parsed : JSON.stringify(parsed))
+        : response.statusText;
+
+      const err = new Error(`HTTP ${response.status} ${response.statusText} - ${detail}`);
+      err.status = response.status;
+      err.body = parsed;
+      throw err;
     }
-    return response.json();
+
+    // Se não houver conteúdo JSON (204), retorna null; caso contrário parseia JSON
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch (e) {
+      return text;
+    }
   };
 
   return {
