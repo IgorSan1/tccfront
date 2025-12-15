@@ -1,4 +1,5 @@
-﻿(function() {
+﻿/* Logout: remove token/session e redireciona; também cria dropdown do user */
+(function() {
     'use strict';
     function logout() {
         const confirmar = confirm("Deseja realmente sair do sistema?");

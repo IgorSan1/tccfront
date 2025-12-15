@@ -1,14 +1,17 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿/* Login: valida formulário, realiza requisição de autenticação e armazena token */
+document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.querySelector(".auth-box form");
     const submitButton = loginForm.querySelector('button[type="submit"]');
     loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        /* Captura valores do formulário e valida campos */
         const usuario = document.getElementById("usuario").value.trim();
         const password = document.getElementById("senha").value.trim();
         if (!usuario || !password) {
             alert("Por favor, preencha todos os campos.");
             return;
         }
+        /* Feedback de carregamento no botão */
         submitButton.disabled = true;
         const originalText = submitButton.textContent;
         submitButton.textContent = "Conectando...";

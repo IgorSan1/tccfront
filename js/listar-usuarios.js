@@ -1,4 +1,9 @@
-﻿(function() {
+﻿/*
+ * Página de listagem e gestão de usuários (ADMIN)
+ * - Carrega usuários, filtra, pagina e permite editar/excluir
+ */
+
+(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     let todosUsuarios = [];
@@ -30,6 +35,7 @@
     if (!verificarPermissaoAdmin()) {
         return;
     }
+    // Seção: utilitários de formatação
     function formatarCpf(cpf) {
         if (!cpf) return "";
         const digits = cpf.replace(/\D/g, "");
@@ -75,6 +81,7 @@
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
     }
+    // Seção: carregamento de usuários (API)
     async function carregarUsuarios() {
         const loading = document.getElementById('loading');
         const tbody = document.getElementById('usuarios-table-body');
@@ -109,6 +116,7 @@
             loading.style.display = 'none';
         }
     }
+    // Seção: renderização da tabela de usuários
     function renderizarTabela(usuarios) {
         const tbody = document.getElementById('usuarios-table-body');
         const msgVazio = document.getElementById('usuarios-vazio');
@@ -164,6 +172,7 @@
             cellAcoes.appendChild(actionDiv);
         });
     }
+    // Seção: modais de edição de usuário
     window.abrirModalEdicaoUsuario = function(usuario) {
         usuarioEmEdicao = usuario;
         document.getElementById('edit-usuario-uuid').value = usuario.uuid;
@@ -185,6 +194,7 @@
         document.getElementById('form-editar-usuario').reset();
         usuarioEmEdicao = null;
     };
+    // Seção: submissão do formulário de edição de usuário
     document.getElementById('form-editar-usuario').addEventListener('submit', async function(e) {
         e.preventDefault();
         const usuarioUuid = document.getElementById('edit-usuario-uuid').value;

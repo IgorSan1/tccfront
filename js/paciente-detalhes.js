@@ -1,4 +1,11 @@
-﻿(function() {
+﻿/*
+ * Página de detalhes do paciente: exibe informações, histórico vacinal e permite edição/exclusão
+ * - Busca paciente por CPF e carrega histórico de vacinações
+ * - Fornece modais para editar paciente e vacinações
+ * - Gera paginação e filtros para o histórico
+ */
+
+(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,6 +25,7 @@
         window.location.href = "home.html";
         return;
     }
+    // Seção: utilitários de formatação (CPF e datas)
     function formatCpf(cpf) {
         if (!cpf || cpf.length !== 11) return cpf;
         return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -58,6 +66,7 @@
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
     }
+    // Seção: autenticação/controle de permissões (JWT)
     function decodeJWT(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -70,6 +79,7 @@
             return null;
         }
     }
+    // Seção: controles de UI (visibilidade de botões e modais)
     function controlarVisibilidadeBotaoExcluir() {
         const btnExcluir = document.querySelector('.btn-delete-info');
         if (!btnExcluir) {
@@ -92,6 +102,7 @@
             btnExcluir.style.display = 'none';
         }
     }
+    // Seção: handlers de modais (abrir/fechar edição de vacinação/paciente)
     window.abrirModalEdicao = function(vacinacao) {
         document.getElementById('edit-vacinacao-uuid').value = vacinacao.uuid;
         document.getElementById('edit-vacina-nome').value = vacinacao.vacina?.nome || 'N/A';
@@ -151,6 +162,7 @@
             fecharModalEdicaoPaciente();
         }
     });
+    // Seção: submissão do formulário de edição de vacinação
     document.getElementById('form-editar-vacinacao').addEventListener('submit', async function(e) {
         e.preventDefault();
         const vacinacaoUuid = document.getElementById('edit-vacinacao-uuid').value;
@@ -194,6 +206,7 @@
             alert("Erro ao conectar com o servidor.");
         }
     });
+    // Seção: submissão do formulário de edição de paciente
     document.getElementById('form-editar-paciente').addEventListener('submit', async function(e) {
         e.preventDefault();
         const pacienteUuidElem = document.getElementById('edit-paciente-uuid');
@@ -263,6 +276,7 @@
             alert("Erro ao conectar com o servidor.");
         }
     });
+    // Seção: exclusão de paciente (confirmações e chamadas DELETE)
     window.excluirPaciente = async function () {
         if (!pessoaAtual) {
             alert(" Erro: Dados do paciente não disponíveis.");
@@ -359,6 +373,7 @@
             );
         }
     };
+    // Seção: exclusão de vacinação
     window.excluirVacinacao = async function(uuid, nomeVacina) {
         const confirmacao = confirm(
             `Tem certeza que deseja excluir o registro da vacina "${nomeVacina}"?\n\n` +
@@ -383,6 +398,7 @@
             alert("Erro ao conectar com o servidor.");
         }
     };
+    // Seção: busca do paciente e atualização da UI
     async function buscarEExibirPaciente() {
         try {
             const cpfLimpo = cpf.replace(/\D/g, '');
@@ -427,6 +443,7 @@
             window.location.href = "home.html";
         }
     }
+    // Seção: busca e montagem do histórico vacinal (requests e cache)
     async function buscarHistoricoVacinal(pessoaUuid) {
         const tbody = document.getElementById('historico-vacinacao-body');
         const msgVazio = document.getElementById('historico-vacinacao-vazio');
@@ -534,6 +551,7 @@
             msgVazio.textContent = 'Erro ao carregar histórico de vacinações.';
         }
     }
+    // Seção: renderização do histórico (tabela + paginação)
     function renderizarHistoricoVacinal(vacinacoes) {
         const tbody = document.getElementById('historico-vacinacao-body');
         const msgVazio = document.getElementById('historico-vacinacao-vazio');

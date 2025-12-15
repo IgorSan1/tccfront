@@ -1,4 +1,10 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+﻿/*
+ * Gerencia o formulário de cadastro de vacinas
+ * - Preenche select de fabricantes
+ * - Valida campos e envia para `/api/v1/vacina`
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = '/api/v1';
     const form = document.getElementById('form-cadastrar-vacina');
     const fabricanteSelect = document.getElementById('fabricante');
@@ -21,12 +27,14 @@
         option.textContent = f.text;
         fabricanteSelect.appendChild(option);
     });
+    // Seção: cancelar -> volta para home
     const btnCancelar = document.querySelector('.btn-secondary');
     if (btnCancelar) {
         btnCancelar.addEventListener('click', () => {
             window.location.href = 'home.html';
         });
     }
+    // Seção: envio do formulário de vacina (validação e POST)
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nome = document.getElementById('nome-vacina').value.trim();

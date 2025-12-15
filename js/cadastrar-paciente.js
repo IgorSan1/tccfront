@@ -1,6 +1,14 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿/*
+ * Captura e valida o formulário de cadastro de paciente.
+ * - Valida CPF e CNS
+ * - Formata máscaras (CPF/CNS)
+ * - Envia payload para API `/api/v1/pessoa`
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".card form");
     const submitButton = form.querySelector('button[type="submit"]');
+    // Seção: envio do formulário (validação e requisição POST)
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const cns = document.getElementById("cns").value.trim();
@@ -69,6 +77,7 @@
             submitButton.textContent = originalText;
         }
     });
+    // Seção: ação do botão cancelar
     const btnCancelar = document.querySelector(".btn-secondary");
     if (btnCancelar) {
         btnCancelar.addEventListener("click", () => {
@@ -77,6 +86,7 @@
             }
         });
     }
+    // Seção: máscara e formatação do CPF
     const cpfInput = document.getElementById("cpf");
     if (cpfInput) {
         cpfInput.addEventListener("input", (e) => {
@@ -93,6 +103,7 @@
             }
         });
     }
+    // Seção: validação simples do CNS (apenas números, limite 15)
     const cnsInput = document.getElementById("cns");
     if (cnsInput) {
         cnsInput.addEventListener("input", (e) => {

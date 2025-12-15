@@ -1,4 +1,5 @@
-﻿(function() {
+﻿/* Header Navigation: controla dropdowns, menu mobile e destaque da página ativa */
+(function() {
     'use strict';
     function initDropdowns() {
         const dropdownItems = document.querySelectorAll('.nav-item.has-dropdown');
@@ -34,6 +35,7 @@
             }
         });
     }
+    /* Mobile menu: alterna visibilidade e troca ícone */
     function initMobileMenu() {
         const mobileToggle = document.getElementById('mobile-menu-toggle');
         const mainNav = document.getElementById('main-nav');
@@ -57,6 +59,7 @@
             }
         });
     }
+    /* Destacar link ativo com base na rota atual */
     function highlightActivePage() {
         const currentPage = window.location.pathname.split('/').pop() || 'home.html';
         const navLinks = document.querySelectorAll('.nav-link');
@@ -67,6 +70,7 @@
             }
         });
     }
+    /* Permissões: mostra itens de admin se o token indicar role ADMIN */
     function checkAdminPermissions() {
         const token = localStorage.getItem("token");
         if (!token) return;

@@ -1,4 +1,5 @@
-﻿(function() {
+﻿/* Header User: decodifica JWT, popula nome/role e cria dropdown de usuário */
+(function() {
     function decodeJWT(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -24,6 +25,7 @@
             window.location.href = "login.html";
         }
     }
+    /* Dropdown do usuário: monta menu com perfil e logout */
     function criarDropdownUsuario() {
         const userProfile = document.querySelector(".user-profile");
         if (!userProfile) return;

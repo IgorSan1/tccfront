@@ -1,4 +1,11 @@
-﻿(function() {
+﻿/*
+ * Listagem de pacientes: busca, paginação, filtros e ações (visualizar/reativar)
+ * - Carrega pacientes via API
+ * - Aplica máscara de CPF e permite filtrar por CPF/status
+ * - Oferece paginação e ações específicas para ADMIN
+ */
+
+(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     let todosPacientes = [];
@@ -23,6 +30,7 @@
             return false;
         }
     }
+    // Seção: configuração inicial da interface conforme permissões
     function configurarInterface() {
         const filtroStatusContainer = document.getElementById('filtro-status-container');
         const colunaStatusHeader = document.getElementById('coluna-status-header');
@@ -42,6 +50,7 @@
             filtroPacienteInput.placeholder = "Buscar por CPF";
         }
     }
+    // Seção: utilitários de formatação
     function formatarCpf(cpf) {
         if (!cpf || cpf.length !== 11) return cpf;
         return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -60,6 +69,7 @@
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
     }
+    // Seção: máscara para campo de filtro (CPF)
     function aplicarMascaraCpf() {
         const filtroPacienteInput = document.getElementById('filtro-paciente');
         if (filtroPacienteInput) {
@@ -78,6 +88,7 @@
             });
         }
     }
+    // Seção: carregamento de pacientes (API -> cache)
     async function carregarPacientes() {
         const loading = document.getElementById('loading');
         const tbody = document.getElementById('pacientes-table-body');
@@ -118,6 +129,7 @@
             loading.style.display = 'none';
         }
     }
+    // Seção: renderização da tabela de pacientes (com paginação)
     function renderizarTabela(pacientes) {
         const tbody = document.getElementById('pacientes-table-body');
         const msgVazio = document.getElementById('pacientes-vazio');
@@ -179,8 +191,8 @@
         criarPaginacao(pacientesOrdenados.length);
         
     }
+    // Seção: navegação para detalhes do paciente
     function verDetalhes(paciente) {
-        
         localStorage.setItem("pacienteSelecionado", JSON.stringify(paciente));
         window.location.href = `paciente-detalhes.html?cpf=${paciente.cpf}`;
     }
@@ -194,6 +206,7 @@
         document.getElementById('modal-reativar-paciente').style.display = 'none';
         pacienteParaReativar = null;
     };
+    // Seção: reativar paciente (PUT)
     async function reativarPaciente() {
         if (!pacienteParaReativar) {
             
@@ -230,7 +243,6 @@
                 await carregarPacientes();
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                console.error(" Erro ao reativar:", errorData);
                 alert(`Erro ao reativar paciente: ${errorData.mensagem || response.statusText || response.status}`);
             }
         } catch (error) {

@@ -1,9 +1,15 @@
-﻿(function() {
+﻿/*
+ * Gera gráficos da página inicial (vacinações, faixas etárias, top vacinas)
+ * - Carrega dados via API e desenha gráficos em canvas e elementos DOM
+ */
+
+(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     if (!token) {
         return;
     }
+    // Seção: utilitários para cálculo de idade e faixa etária
     function calcularIdade(dataNascimento) {
         if (!dataNascimento) return 0;
         let data = dataNascimento;
@@ -26,6 +32,7 @@
         if (idade <= 59) return '18-59';
         return '60+';
     }
+    // Seção: carregamento e renderização do gráfico de vacinações (últimos 30 dias)
     async function carregarGraficoVacinacoesPeriodo() {
         try {
             const response = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
@@ -80,6 +87,7 @@
         } catch (error) {
         }
     }
+    // Seção: desenho do gráfico de linha custom (canvas)
     function desenharGraficoLinha(canvasId, labels, valores) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
@@ -175,6 +183,7 @@
             }
         });
     }
+    // Seção: carregamento do gráfico top vacinas (barras horizontais)
     async function carregarGraficoTopVacinas() {
     const container = document.getElementById('graficoTopVacinas');
     try {

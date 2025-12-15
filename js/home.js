@@ -1,4 +1,10 @@
-﻿(function(){
+﻿/*
+ * Lógica da página inicial: busca rápida por CPF e ajuste de UI conforme JWT
+ * - Atualiza nome do usuário e badge ADMIN
+ * - Busca paciente por CPF e redireciona para detalhes
+ */
+
+(function(){
     const API_BASE = "/api/v1";
     const searchBar = document.querySelector(".search-bar");
     let debounceId;
@@ -14,6 +20,7 @@
             return null;
         }
     }
+    // Seção: atualização do nome exibido e badge de ADMIN
     function atualizarNomeUsuario() {
         const token = localStorage.getItem("token");
         if (token) {
@@ -63,6 +70,7 @@
             if (btnListarUsuarios) btnListarUsuarios.style.display = "none";
         }
     }
+    // Seção: utilitários de máscara CPF e helpers
     function applyCpfMask(value) {
         const digits = (value || "").replace(/\D/g, "").slice(0, 11);
         const part1 = digits.slice(0, 3);
@@ -79,6 +87,7 @@
         const digits = (value || "").replace(/\D/g, "");
         return digits.length === 11;
     }
+    // Seção: interação com a barra de busca (mascara, debounce e busca)
     searchBar.addEventListener("input", () => {
         const cursorPos = searchBar.selectionStart;
         const oldValue = searchBar.value;

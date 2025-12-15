@@ -1,4 +1,9 @@
-﻿(function() {
+﻿/*
+ * Listagem e gestão de vacinas
+ * - Carrega vacinas, permite filtro, ordenação, edição e exclusão
+ */
+
+(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
     let todasVacinas = [];
@@ -15,6 +20,7 @@
         window.location.href = "login.html";
         return;
     }
+    // Seção: utilitários (formatos e verificação de validade)
     function formatarData(data) {
         if (!data) return "-";
         if (data.includes('/')) {
@@ -123,6 +129,7 @@
             }
         });
     }
+    // Seção: carregamento de vacinas (API)
     async function carregarVacinas() {
         const loading = document.getElementById('loading');
         const tbody = document.getElementById('vacinas-table-body');
@@ -157,6 +164,7 @@
             loading.style.display = 'none';
         }
     }
+    // Seção: renderização da tabela de vacinas
     function renderizarTabela(vacinas) {
         const tbody = document.getElementById('vacinas-table-body');
         const msgVazio = document.getElementById('vacinas-vazio');

@@ -1,4 +1,11 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿/*
+ * Formulário para criação de usuários (somente ADMIN)
+ * - Valida sessão e permissões (JWT)
+ * - Aplica máscaras (CPF/telefone)
+ * - Envia requisição para `/api/v1/usuario`
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
     const API_BASE = "/api/v1";
     const form = document.getElementById("cadastroUsuarioForm");
     const submitButton = form.querySelector('button[type="submit"]');
@@ -30,6 +37,7 @@
             window.location.href = "login.html";
         }
     }
+    // Seção: utilitários de máscara
     function applyCpfMask(value) {
         const digits = (value || "").replace(/\D/g, "").slice(0, 11);
         const part1 = digits.slice(0, 3);
@@ -49,6 +57,7 @@
         if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
         return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
     }
+    // Seção: aplica máscara ao CPF no campo
     const cpfInput = document.getElementById("cpf");
     if (cpfInput) {
         cpfInput.addEventListener("input", () => {
@@ -61,6 +70,7 @@
             telefoneInput.value = applyPhoneMask(telefoneInput.value);
         });
     }
+    // Seção: envio do formulário de cadastro de usuário
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const nomeCompleto = document.getElementById("nomeCompleto").value.trim();
@@ -147,6 +157,7 @@
             submitButton.textContent = originalText;
         }
     });
+    // Seção: botão de retorno/cancelar
     const btnVoltarHome = document.getElementById("btnVoltarHome");
     if (btnVoltarHome) {
         btnVoltarHome.addEventListener("click", (e) => {

@@ -1,7 +1,14 @@
-﻿(function(){
+﻿/*
+ * Lógica da página de perfil do usuário
+ * - Carrega e exibe dados do usuário
+ * - Permite edição do perfil (dependendo da permissão)
+ */
+
+(function(){
     const API_BASE = "/api/v1";
     let usuarioAtual = null;
     let isAdmin = false;
+    // Seção: utilitários (decodificação JWT, formatação)
     function decodeJWT(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -73,6 +80,7 @@
         };
         return cargos[cargo] || cargo;
     }
+    // Seção: carregamento do perfil (API e fallback para token)
     async function carregarPerfilUsuario() {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -120,6 +128,7 @@
             preencherPerfilDoToken(decodedToken);
         }
     }
+    // Seção: preenchimento da UI com dados do token ou usuário
     function preencherPerfilDoToken(decodedToken) {
         const headerUserSpan = document.querySelector(".user-profile span");
         if (headerUserSpan) {
@@ -177,6 +186,7 @@
         document.getElementById('view-telefone').value = formatarTelefone(usuario.telefone) || "";
         document.getElementById('view-cargo').value = formatarCargo(usuario.cargo) || "";
     }
+    // Seção: modais de edição de perfil
     window.abrirModalEdicaoPerfil = function() {
         if (!usuarioAtual) {
             alert("Erro: Perfil não disponível para edição. Apenas usuários com cadastro completo podem editar o perfil.");
@@ -234,6 +244,7 @@
             fecharModalEdicaoPerfil();
         }
     });
+    // Seção: submissão do formulário de edição de perfil
     document.getElementById('form-editar-perfil').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (!usuarioAtual) {

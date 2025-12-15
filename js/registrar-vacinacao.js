@@ -1,4 +1,11 @@
-﻿(function(){
+﻿/*
+ * Registro de vacinação: seleção de vacina e paciente, validações e envio
+ * - Preenche datalist de vacinas
+ * - Busca paciente por CPF quando necessário
+ * - Envia payload para `/api/v1/vacinacoes/registrar`
+ */
+
+(function(){
     const API_BASE = '/api/v1';
     const form = document.getElementById('form-registrar-vacinacao');
     const listaVacinas = document.getElementById("lista-vacinas");
@@ -8,11 +15,13 @@
     const pessoaUuidInput = document.getElementById("pessoa-uuid");
     let vacinasCache = [];
     let debounceId;
+    // Seção: utilitários (formato de data, máscara CPF)
     function formatDateToDDMMYYYY(isoDate) {
         if (!isoDate) return null;
         const [y, m, d] = isoDate.split("-");
         return `${d}/${m}/${y}`;
     }
+    // Seção: máscara CPF
     function applyCpfMask(value) {
         const digits = (value || "").replace(/\D/g, "").slice(0, 11);
         const part1 = digits.slice(0, 3);
@@ -28,6 +37,7 @@
     pessoaCpfInput.addEventListener("input", () => {
         pessoaCpfInput.value = applyCpfMask(pessoaCpfInput.value);
     });
+    // Seção: carregamento de vacinas (API -> cache)
     async function carregarVacinas() {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -58,6 +68,7 @@
             vacinasCache = [];
         }
     }
+    // Seção: montagem da lista de sugestões (datalist)
     function montarLabelVacina(v) {
         const nome = v?.nome || "";
         return nome;
@@ -76,6 +87,7 @@
         });
     }
     carregarVacinas();
+    // Seção: interação com input de vacina (debounce + seleção)
     vacinaNomeInput.addEventListener("input", () => {
         clearTimeout(debounceId);
         const val = vacinaNomeInput.value;
@@ -121,6 +133,7 @@
             }
         }
     }
+    // Seção: submissão do formulário (valida e registra vacinação)
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
         const aplicacaoRaw = document.getElementById("aplicacao").value;
