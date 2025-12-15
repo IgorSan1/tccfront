@@ -8,6 +8,7 @@
     const ITENS_POR_PAGINA = 10;
     let isAdmin = false;
 
+    // ===== VERIFICAR PERMISSÃO =====
     function verificarPermissao() {
         if (!token) {
             alert("Você precisa estar logado para acessar esta página.");
@@ -18,8 +19,13 @@
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             isAdmin = payload.role === 'ADMIN';
+            
+            console.log("👤 Role do usuário:", payload.role);
+            console.log("🔐 É Admin:", isAdmin);
+            
             return true;
         } catch (e) {
+            console.error("❌ Erro ao verificar permissão:", e);
             alert("Sessão inválida. Faça login novamente.");
             localStorage.removeItem("token");
             window.location.href = "login.html";
@@ -27,23 +33,30 @@
         }
     }
 
+    // ===== ✅ CORRIGIDO: CONFIGURAR INTERFACE BASEADA EM PERMISSÃO =====
     function configurarInterface() {
         const filtroStatusContainer = document.getElementById('filtro-status-container');
         const colunaStatusHeader = document.getElementById('coluna-status-header');
         const filtroPacienteInput = document.getElementById('filtro-paciente');
         
         if (isAdmin) {
+            // ✅ Admin vê filtro de status e coluna de status
             if (filtroStatusContainer) {
                 filtroStatusContainer.style.display = 'block';
+                console.log("✅ Filtro de status EXIBIDO para ADMIN");
             }
             if (colunaStatusHeader) {
                 colunaStatusHeader.style.display = 'table-cell';
+                console.log("✅ Coluna de status EXIBIDA para ADMIN");
             }
         } else {
+            // User não vê filtro de status nem coluna
             if (filtroStatusContainer) filtroStatusContainer.style.display = 'none';
             if (colunaStatusHeader) colunaStatusHeader.style.display = 'none';
+            console.log("✅ Interface USER configurada (sem status)");
         }
 
+        // Atualizar placeholder do campo de busca
         if (filtroPacienteInput) {
             filtroPacienteInput.placeholder = "Buscar por CPF";
         }
@@ -107,14 +120,14 @@
         msgVazio.style.display = 'none';
 
         try {
-            
+            console.log("📥 Carregando pacientes...");
 
             // USER: buscar apenas ativos | ADMIN: buscar todos
             const endpoint = isAdmin ? 
                 `${API_BASE}/pessoa/all?size=1000&page=0` : 
                 `${API_BASE}/pessoa?size=1000&page=0`;
 
-            
+            console.log(`🔗 Endpoint usado: ${endpoint}`);
 
             const response = await fetch(endpoint, {
                 method: "GET",
@@ -129,7 +142,7 @@
             }
 
             const data = await response.json();
-            
+            console.log("📦 Resposta da API:", data);
 
             let pacientes = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
@@ -141,10 +154,13 @@
             todosPacientes = pacientes;
             pacientesFiltrados = [...pacientes];
 
+            console.log(`✅ ${pacientes.length} pacientes carregados`);
+            console.log(`📊 Amostra de dados:`, pacientes.slice(0, 2));
+
             renderizarTabela(pacientes);
 
         } catch (error) {
-            
+            console.error("❌ Erro ao carregar pacientes:", error);
             alert("Erro ao carregar pacientes. Verifique sua conexão.");
         } finally {
             loading.style.display = 'none';
@@ -209,7 +225,7 @@
                 badgeStatus.textContent = paciente.ativo ? 'Ativo' : 'Inativo';
                 cellStatus.appendChild(badgeStatus);
                 
-                
+                console.log(`👤 ${paciente.nomeCompleto}: ativo=${paciente.ativo}`);
             }
 
             // Ações
@@ -241,11 +257,12 @@
         });
 
         criarPaginacao(pacientesOrdenados.length);
+        console.log(`✅ ${pacientesPaginados.length} pacientes renderizados (Página ${paginaAtual} de ${totalPaginas})`);
     }
 
     // ===== VER DETALHES DO PACIENTE =====
     function verDetalhes(paciente) {
-        
+        console.log("👁️ Ver detalhes do paciente:", paciente.nomeCompleto);
         localStorage.setItem("pacienteSelecionado", JSON.stringify(paciente));
         window.location.href = `paciente-detalhes.html?cpf=${paciente.cpf}`;
     }
@@ -254,7 +271,7 @@
     let pacienteParaReativar = null;
 
     window.abrirModalReativar = function(paciente) {
-        
+        console.log("🔄 Abrindo modal para reativar:", paciente.nomeCompleto);
         pacienteParaReativar = paciente;
         document.getElementById('nome-paciente-reativar').textContent = paciente.nomeCompleto;
         document.getElementById('modal-reativar-paciente').style.display = 'flex';
@@ -269,12 +286,12 @@
     // Extrai a lógica para função reutilizável e adiciona fallback caso o elemento não exista
     async function reativarPaciente() {
         if (!pacienteParaReativar) {
-            
+            console.warn('⚠️ Nenhum paciente selecionado para reativação.');
             alert('Nenhum paciente selecionado para reativar.');
             return;
         }
 
-        
+        console.log("🔄 Reativando paciente:", pacienteParaReativar.uuid ?? pacienteParaReativar.id);
 
         try {
             // Incluir explicitamente 'ativo: true' para garantir que o paciente seja reativado
@@ -290,7 +307,7 @@
                 ativo: true
             };
 
-            
+            console.log("📤 Payload de reativação:", payload);
 
             const uuidParaUso = pacienteParaReativar.uuid ?? pacienteParaReativar.id;
             const response = await fetch(`${API_BASE}/pessoa/${uuidParaUso}`, {
@@ -302,7 +319,7 @@
                 body: JSON.stringify(payload)
             });
 
-            
+            console.log("📥 Status da resposta:", response.status);
 
             if (response.ok || response.status === 204) {
                 alert(`Paciente "${pacienteParaReativar.nomeCompleto}" reativado com sucesso!`);
@@ -310,11 +327,11 @@
                 await carregarPacientes();
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                
+                console.error("❌ Erro ao reativar:", errorData);
                 alert(`Erro ao reativar paciente: ${errorData.mensagem || response.statusText || response.status}`);
             }
         } catch (error) {
-            
+            console.error("❌ Erro ao reativar paciente:", error);
             alert("Erro ao conectar com o servidor.");
         }
     }
@@ -362,7 +379,7 @@
             if (isAdmin && filtroStatus) {
                 const statusBoolean = filtroStatus === 'true';
                 passaFiltroStatus = paciente.ativo === statusBoolean;
-                
+                console.log(`🔍 Filtrando: ${paciente.nomeCompleto} - ativo=${paciente.ativo}, filtro=${statusBoolean}, passa=${passaFiltroStatus}`);
             }
 
             return passaFiltroCpf && passaFiltroStatus;
@@ -523,6 +540,3 @@
         carregarPacientes();
     }
 })();
-
-
-

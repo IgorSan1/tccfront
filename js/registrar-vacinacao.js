@@ -50,12 +50,15 @@
             });
 
             if (!resp.ok) {
+                console.error("Erro ao carregar vacinas:", resp.status);
                 vacinasCache = [];
                 return;
             }
 
             const data = await resp.json().catch(() => ({}));
+            console.log("📦 Dados recebidos da API:", data);
 
+            // Ajuste para o formato { dados: [[{...}]] }
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
                 vacinasCache = data.dados[0];
             } else if (Array.isArray(data?.dados)) {
@@ -63,7 +66,10 @@
             } else {
                 vacinasCache = [];
             }
+            
+            console.log("✅ Vacinas carregadas:", vacinasCache.length);
         } catch (err) {
+            console.error("❌ Erro ao carregar vacinas:", err);
             vacinasCache = [];
         }
     }
@@ -79,6 +85,7 @@
         const filtradas = vacinasCache.filter((v) =>
             (v?.nome || "").toLowerCase().includes(f)
         );
+        console.log("Vacinas filtradas:", filtradas);
         filtradas.slice(0, 20).forEach((v) => {
             const opt = document.createElement("option");
             opt.value = montarLabelVacina(v);
@@ -87,8 +94,10 @@
         });
     }
 
+    // Inicializa carregando as vacinas
     carregarVacinas();
 
+    // Enquanto digita: filtra e sugere (debounce)
     vacinaNomeInput.addEventListener("input", () => {
         clearTimeout(debounceId);
         const val = vacinaNomeInput.value;
@@ -105,6 +114,7 @@
         }, 120);
     });
 
+    // Ao sair do campo: tenta exata -> parcial -> nenhuma
     vacinaNomeInput.addEventListener("change", () => {
         const val = (vacinaNomeInput.value || "").trim().toLowerCase();
         const opts = Array.from(listaVacinas.options);
@@ -113,17 +123,21 @@
         if (!found && opts.length === 1) found = opts[0];
         if (found) {
             vacinaUuidInput.value = found.getAttribute("data-uuid") || "";
+            console.log("Vacina selecionada:", found.value, "UUID:", vacinaUuidInput.value);
         } else {
             vacinaUuidInput.value = "";
+            console.warn("Vacina não encontrada na lista:", vacinaNomeInput.value);
         }
     });
 
+    // Também marca uuid se o usuário escolheu uma opção exata
     vacinaNomeInput.addEventListener("input", () => {
         const opts = Array.from(listaVacinas.options);
         const found = opts.find((o) => o.value === vacinaNomeInput.value);
         if (found) vacinaUuidInput.value = found.getAttribute("data-uuid") || "";
     });
 
+    // Verificar se há CPF na URL (vindo da busca na home)
     const urlParams = new URLSearchParams(window.location.search);
     const cpfFromUrl = urlParams.get('cpf');
     if (cpfFromUrl) {
@@ -135,9 +149,9 @@
             try {
                 const paciente = JSON.parse(pacienteData);
                 pessoaUuidInput.value = paciente.uuid;
-                
+                console.log("Paciente pré-carregado:", paciente);
             } catch (e) {
-                
+                console.error("Erro ao carregar paciente:", e);
             }
         }
     }
@@ -145,7 +159,7 @@
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
         
-        
+        console.log("📝 Iniciando registro de vacinação...");
         
         const aplicacaoRaw = document.getElementById("aplicacao").value;
         if (!aplicacaoRaw) {
@@ -158,8 +172,8 @@
         
         const dataProximaDose = proximaRaw ? formatDateToDDMMYYYY(proximaRaw) : null;
         
-        
-        
+        console.log("📅 Data de aplicação:", dataAplicacao);
+        console.log("📅 Data próxima dose:", dataProximaDose || "Não informada");
 
         const token = localStorage.getItem("token");
         if (!token) {
@@ -177,7 +191,7 @@
             }
 
             try {
-                
+                console.log("🔍 Buscando paciente por CPF:", cpfDigits);
                 
                 const respPessoa = await fetch(`${API_BASE}/pessoa/buscar-por-cpf`, {
                     method: "POST",
@@ -212,9 +226,9 @@
                     return;
                 }
                 
-                
+                console.log("✅ Paciente encontrado:", pessoa.nomeCompleto);
             } catch (err) {
-                
+                console.error("❌ Falha ao buscar paciente por CPF:", err);
                 alert("Falha ao buscar paciente por CPF.");
                 return;
             }
@@ -240,6 +254,8 @@
             return;
         }
 
+        console.log("📤 Enviando payload:", JSON.stringify(payload, null, 2));
+
         try {
             const resp = await fetch(`${API_BASE}/vacinacoes/registrar`, {
                 method: "POST",
@@ -250,21 +266,24 @@
                 body: JSON.stringify(payload),
             });
             
+            console.log("📥 Status da resposta:", resp.status);
+            
             const data = await resp.json().catch(() => ({}));
             
             if (!resp.ok) {
+                console.error("❌ Erro na resposta:", data);
                 alert(`Erro ao registrar vacinação: ${data?.mensagem || resp.status}`);
                 return;
             }
             
+            console.log("✅ Vacinação registrada com sucesso:", data);
             alert("Vacinação registrada com sucesso!");
             localStorage.removeItem("pacienteSelecionado");
             window.location.href = "home.html";
         } catch (err) {
+            console.error("❌ Erro ao registrar vacinação:", err);
             alert("Falha de comunicação com o servidor.");
         }
     });
 })();
-
-
 
