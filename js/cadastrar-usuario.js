@@ -1,11 +1,8 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     const API_BASE = "/api/v1";
     const form = document.getElementById("cadastroUsuarioForm");
-    const btnCancelar = document.getElementById("btnCancelar");
-
-    // ✅ CORRIGIDO: Verificar se é ADMIN antes de permitir acesso
+    const submitButton = form.querySelector('button[type="submit"]');
     verificarPermissaoAdmin();
-
     function verificarPermissaoAdmin() {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -13,22 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "login.html";
             return;
         }
-
-        // Decodificar token para verificar permissões
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            
-            
-            // ✅ VERIFICAR SE É ADMIN
             if (payload.role !== 'ADMIN') {
-                alert("⚠️ ACESSO NEGADO\n\nApenas usuários com perfil ADMIN podem cadastrar novos usuários.\n\nVocê será redirecionado para a home.");
+                alert("Apenas usuários ADMIN podem cadastrar novos usuários.");
                 window.location.href = "home.html";
                 return;
             }
-            
-            
-            
-            // Verificar se o token está expirado
             const agora = Math.floor(Date.now() / 1000);
             if (payload.exp < agora) {
                 alert("Sua sessão expirou. Faça login novamente.");
@@ -37,14 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         } catch (e) {
-            
             alert("Sessão inválida. Faça login novamente.");
             localStorage.removeItem("token");
             window.location.href = "login.html";
         }
     }
-
-    // Função para aplicar máscara de CPF
     function applyCpfMask(value) {
         const digits = (value || "").replace(/\D/g, "").slice(0, 11);
         const part1 = digits.slice(0, 3);
@@ -57,8 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (part4) out += `-${part4}`;
         return out;
     }
-
-    // Função para aplicar máscara de telefone
     function applyPhoneMask(value) {
         const digits = (value || "").replace(/\D/g, "").slice(0, 11);
         if (digits.length === 0) return "";
@@ -66,27 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
         return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
     }
-
-    // Aplicar máscara de CPF ao digitar
     const cpfInput = document.getElementById("cpf");
     if (cpfInput) {
         cpfInput.addEventListener("input", () => {
             cpfInput.value = applyCpfMask(cpfInput.value);
         });
     }
-
-    // Aplicar máscara de telefone ao digitar
     const telefoneInput = document.getElementById("telefone");
     if (telefoneInput) {
         telefoneInput.addEventListener("input", () => {
             telefoneInput.value = applyPhoneMask(telefoneInput.value);
         });
     }
-
-    // Submeter formulário
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
-
         const nomeCompleto = document.getElementById("nomeCompleto").value.trim();
         const usuario = document.getElementById("usuario").value.trim();
         const email = document.getElementById("email").value.trim();
@@ -97,41 +73,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const senha = document.getElementById("senha").value;
         const confirmarSenha = document.getElementById("confirmarSenha").value;
         const role = document.getElementById("role").value;
-
-        // Validações básicas
         if (!nomeCompleto || !usuario || !email || !cpf || !dataNascimento || !cargo || !senha || !confirmarSenha || !role) {
             alert("Por favor, preencha todos os campos obrigatórios.");
             return;
         }
-
-        // Validar CPF
         if (cpf.length !== 11) {
             alert("CPF deve ter exatamente 11 dígitos.");
             return;
         }
-
-        // Validar senhas
         if (senha !== confirmarSenha) {
             alert("As senhas não coincidem.");
             return;
         }
-
         if (senha.length < 4) {
             alert("A senha deve ter pelo menos 4 caracteres.");
             return;
         }
-
-        // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             alert("Por favor, informe um e-mail válido.");
             return;
         }
-
-        // Converter data de yyyy-MM-dd para dd/MM/yyyy
         const partes = dataNascimento.split("-");
         const dataNascimentoFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-
         const data = {
             nomeCompleto,
             usuario,
@@ -143,9 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
             password: senha,
             role
         };
-
-        
-
+        submitButton.disabled = true;
+        const originalText = submitButton.textContent;
+        submitButton.textContent = "Cadastrando...";
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -153,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.location.href = "login.html";
                 return;
             }
-
             const response = await fetch(`${API_BASE}/usuario`, {
                 method: "POST",
                 headers: {
@@ -162,38 +125,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 body: JSON.stringify(data)
             });
-
-            
-
             if (response.ok) {
-                const result = await response.json();
-                
-                alert(result.mensagem || "Usuário cadastrado com sucesso!");
+                alert("Usuário cadastrado com sucesso!");
                 form.reset();
                 window.location.href = "home.html";
             } else if (response.status === 403) {
-                
-                alert("❌ ACESSO NEGADO\n\nApenas usuários ADMIN podem cadastrar novos usuários.\n\nVerifique seu perfil de acesso.");
+                alert("Apenas usuários ADMIN podem cadastrar novos usuários.");
             } else {
                 const errorData = await response.json().catch(() => ({ mensagem: response.statusText }));
-                
-                
                 let mensagemErro = errorData.mensagem || errorData.message || 'Erro desconhecido';
-                
                 if (errorData.erros) {
                     const erros = Array.isArray(errorData.erros) ? errorData.erros : [errorData.erros];
                     mensagemErro = erros.join('\n');
                 }
-                
                 alert(`Erro ao cadastrar usuário:\n\n${mensagemErro}`);
             }
         } catch (error) {
-            
             alert("Erro ao conectar com o servidor. Verifique sua conexão.");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
-
-    // Botão de voltar
     const btnVoltarHome = document.getElementById("btnVoltarHome");
     if (btnVoltarHome) {
         btnVoltarHome.addEventListener("click", (e) => {
@@ -204,7 +157,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-
 
 

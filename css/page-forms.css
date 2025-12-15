@@ -1,8 +1,10 @@
-.page-title-container {
+﻿.page-title-container {
     padding-bottom: 1.5rem;
     margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
 }
+
+/* Formulários: grid e ações usadas em páginas de cadastro/edição */
 .page-title-container h2 {
     font-size: 1.5rem;
     font-weight: 600;
@@ -13,6 +15,7 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem 2rem;
 }
+/* Form grid: controla colunas e espaçamento entre campos */
 .form-group.full-width { grid-column: 1 / -1; }
 .form-group.col-span-2 { grid-column: span 2; }
 textarea { min-height: 100px; resize: vertical; }
@@ -26,7 +29,9 @@ textarea { min-height: 100px; resize: vertical; }
     gap: 1rem;
 }
 
-/* Para a página de consulta de paciente */
+/* Ações do formulário: área de botões (salvar, cancelar) */
+
+
 .search-form {
     display: flex;
     gap: 1rem;
@@ -40,7 +45,9 @@ input[readonly] {
     color: var(--text-secondary);
 }
 
-/*Ajuste para input com texto mais claro em campos readonly */
+
 input[readonly]::placeholder {
     color: var(--text-secondary);
 }
+
+/* Campos readonly: aparência diferenciada para indicar não-editável */

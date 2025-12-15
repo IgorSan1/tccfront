@@ -1,5 +1,4 @@
-/* --- Layout Principal --- */
-.main-header {
+﻿.main-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -12,12 +11,16 @@
     gap: 2rem;
 }
 
+/* Cabeçalho principal: layout do topo com logo e navegação */
+
 .logo-container {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     flex-shrink: 0;
 }
+
+/* Logo: imagem e título do sistema */
 
 .logo-container img {
     height: 32px;
@@ -29,12 +32,14 @@
     color: var(--text-primary);
 }
 
-/* ===== MENU DE NAVEGAÇÃO ===== */
+
 .main-nav {
     flex: 1;
     display: flex;
     justify-content: center;
 }
+
+/* Navegação principal: centraliza menu */
 
 .nav-menu {
     display: flex;
@@ -48,6 +53,8 @@
 .nav-item {
     position: relative;
 }
+
+/* Itens do menu: possíveis dropdowns e links */
 
 .nav-link {
     display: flex;
@@ -63,6 +70,8 @@
     white-space: nowrap;
 }
 
+/* Link do menu: usado para navegação principal, com hover/estado ativo */
+
 .nav-link:hover {
     background-color: var(--background-color);
     color: var(--primary-blue);
@@ -77,7 +86,7 @@
     font-size: 1rem;
 }
 
-/* Dropdown do Menu */
+
 .nav-item.has-dropdown {
     position: relative;
 }
@@ -97,6 +106,8 @@
     overflow: hidden;
 }
 
+/* Dropdown do menu: lista de ações secundárias */
+
 .nav-dropdown.show {
     display: block;
     animation: fadeInDown 0.3s ease;
@@ -112,6 +123,8 @@
     transition: background-color 0.2s ease;
     font-size: 0.9rem;
 }
+
+/* Item do dropdown: alinhamento e espaçamento entre ícone e texto */
 
 .nav-dropdown-item:hover {
     background-color: var(--background-color);
@@ -130,7 +143,9 @@
     margin: 0.25rem 0;
 }
 
-/* Indicador de dropdown no menu */
+/* Divisor no dropdown: separa grupos de ações */
+
+
 .nav-link .dropdown-indicator {
     margin-left: 0.25rem;
     font-size: 0.7rem;
@@ -141,7 +156,7 @@
     transform: rotate(180deg);
 }
 
-/* Menu Mobile Toggle */
+
 .mobile-menu-toggle {
     display: none;
     background: none;
@@ -154,9 +169,13 @@
     transition: background-color 0.2s ease;
 }
 
+/* Botão menu mobile: aparece em telas pequenas */
+
 .mobile-menu-toggle:hover {
     background-color: var(--background-color);
 }
+
+/* Hover do botão mobile: feedback visual em telas pequenas */
 
 .user-actions {
     display: flex;
@@ -164,6 +183,8 @@
     gap: 1.5rem;
     flex-shrink: 0;
 }
+
+/* Ações do usuário: perfil, logout e atalhos */
 
 .user-profile {
     display: flex;
@@ -176,13 +197,17 @@
     cursor: pointer;
 }
 
+/* Perfil do usuário: mostra avatar/nome e abre menu do usuário */
+
 .main-container {
     padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-/* --- Cartão Base --- */
+/* Container principal: área de conteúdo centralizada */
+
+
 .card {
     background-color: var(--card-background);
     padding: 2rem;
@@ -190,7 +215,9 @@
     box-shadow: var(--card-shadow);
 }
 
-/* --- Botões --- */
+/* Cartões: blocos padrão usados em seções */
+
+
 .btn {
     padding: 0.8rem 1.5rem;
     border: none;
@@ -205,10 +232,14 @@
     gap: 0.5rem;
 }
 
+/* Botões: estilos básicos para ações (primário/segundário) */
+
 .btn-primary {
     background-color: var(--primary-blue);
     color: var(--text-light);
 }
+
+/* Botão primário: ação principal (salvar, confirmar) */
 
 .btn-primary:hover {
     background-color: var(--primary-blue-dark);
@@ -226,11 +257,15 @@
     background-color: #e0e0e0;
 }
 
-/* --- Elementos de Formulário --- */
+/* Botão secundário: ações menos importantes (cancelar, voltar) */
+
+
 .form-group {
     display: flex;
     flex-direction: column;
 }
+
+/* Form-group: container de label + campo para formulários */
 
 .form-group label {
     margin-bottom: 0.5rem;
@@ -267,7 +302,7 @@ input[type="date"], input[type="time"] {
     position: relative;
 }
 
-/* --- Estilo para a Logo clicável --- */
+
 a.logo-container {
     text-decoration: none;
 }
@@ -281,7 +316,7 @@ a.logo-container:hover h1 {
     color: var(--primary-blue);
 }
 
-/* Dropdown do usuário */
+
 .user-profile {
     position: relative;
     cursor: pointer;
@@ -365,7 +400,7 @@ a.logo-container:hover h1 {
     background-color: #fff5f5;
 }
 
-/* Indicador de dropdown */
+
 .dropdown-indicator {
     margin-left: 0.25rem;
     font-size: 0.7rem;
@@ -377,14 +412,14 @@ a.logo-container:hover h1 {
     transform: rotate(180deg);
 }
 
-/* Garantir que o user-profile seja flexível */
+
 .user-profile {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-/* ===== RESPONSIVIDADE DO MENU ===== */
+
 @media (max-width: 992px) {
     .main-header {
         flex-wrap: wrap;

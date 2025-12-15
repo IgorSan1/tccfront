@@ -1,19 +1,22 @@
-@media (max-width: 1200px) {
+﻿@media (max-width: 1200px) {
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     .grid-col-span-3 { grid-column: span 2; }
 }
 
-/* Tablets (até 992px) */
+/* Responsividade: ajustes por breakpoint para telas menores */
+
+
 @media (max-width: 992px) {
     .main-header { padding: 1rem; }
     .main-container { padding: 1.5rem; }
     .coverage-card { grid-template-columns: 1fr; text-align: center; }
     .progress-circle { margin: 0 auto; }
 }
+/* <= 992px: ajustes de espaçamento e layout para tablets */
 
-/* Tablets pequenos e celulares (até 768px) */
+
 @media (max-width: 768px) {
     .dashboard-grid { grid-template-columns: 1fr; }
     .grid-col-span-2 { grid-column: span 1; }
@@ -27,9 +30,11 @@
     .notification-item { flex-direction: column; align-items: flex-start; }
     .notification-time { position: static; margin-top: 0.5rem; }
 }
+/* <= 768px: empilha colunas e otimiza formulários para celular grande */
 
-/* Celulares (até 480px) */
+
 @media (max-width: 480px) {
     .user-profile span { display: none; }
     .auth-box { padding: 2rem; }
 }
+/* <= 480px: regras finais para telas pequenas (ocultar labels, reduzir padding) */

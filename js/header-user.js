@@ -1,7 +1,4 @@
-(function() {
-    
-
-    // Função para decodificar o token JWT
+﻿(function() {
     function decodeJWT(token) {
         try {
             const base64Url = token.split('.')[1];
@@ -11,70 +8,32 @@
             }).join(''));
             return JSON.parse(jsonPayload);
         } catch (e) {
-            
             return null;
         }
     }
-
-    // Função de logout
     function logout() {
-        
-        
         const confirmar = confirm("Deseja realmente sair do sistema?");
-        
-        if (!confirmar) {
-            
-            return;
-        }
-
+        if (!confirmar) return;
         try {
-            // Limpar dados
             localStorage.removeItem("token");
             localStorage.removeItem("pacienteSelecionado");
             sessionStorage.clear();
-            
-            
-            
-            // Redirecionar
             window.location.href = "login.html";
-            
         } catch (error) {
-            
             alert("Erro ao fazer logout. Você será redirecionado para a página de login.");
             window.location.href = "login.html";
         }
     }
-
-    // Função para criar dropdown de usuário
     function criarDropdownUsuario() {
-        
-        
         const userProfile = document.querySelector(".user-profile");
-        
-        if (!userProfile) {
-            
-            return;
-        }
-
-        // Verificar se já existe dropdown
-        if (userProfile.querySelector('.user-dropdown')) {
-            
-            return;
-        }
-
-        // Adicionar indicador de dropdown
+        if (!userProfile) return;
+        if (userProfile.querySelector('.user-dropdown')) return;
         const userSpan = userProfile.querySelector('span');
         if (userSpan) {
-            // Criar elemento do indicador
             const indicator = document.createElement('i');
             indicator.className = 'fa-solid fa-chevron-down dropdown-indicator';
-            
-            // Adicionar depois do span
             userSpan.insertAdjacentElement('afterend', indicator);
-            
         }
-
-        // Criar estrutura do dropdown
         const dropdown = document.createElement('div');
         dropdown.className = 'user-dropdown';
         dropdown.innerHTML = `
@@ -88,85 +47,43 @@
                 <span>Sair</span>
             </button>
         `;
-
-        // Adicionar dropdown ao DOM
         userProfile.appendChild(dropdown);
-        
-
         userProfile.removeAttribute('href');
         userProfile.style.cursor = 'pointer';
-
-        // Evento de clique no user-profile (apenas para toggle)
         userProfile.addEventListener('click', function(e) {
-            // Se clicou em um item do dropdown, não fazer nada aqui
-            if (e.target.closest('.user-dropdown-item')) {
-                
-                return;
-            }
-            
-            // Se clicou no próprio dropdown (fundo), não fazer nada
-            if (e.target.classList.contains('user-dropdown')) {
-                return;
-            }
-            
+            if (e.target.closest('.user-dropdown-item')) return;
+            if (e.target.classList.contains('user-dropdown')) return;
             e.preventDefault();
             e.stopPropagation();
-            
             const isOpen = dropdown.classList.contains('show');
             dropdown.classList.toggle('show');
             userProfile.classList.toggle('active');
-            
-            // Animar indicador
             const indicator = userProfile.querySelector('.dropdown-indicator');
             if (indicator) {
                 indicator.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             }
-            
-            
         });
-
-        // Fechar dropdown ao clicar fora
         document.addEventListener('click', function(e) {
             if (!userProfile.contains(e.target)) {
                 dropdown.classList.remove('show');
                 userProfile.classList.remove('active');
-                
                 const indicator = userProfile.querySelector('.dropdown-indicator');
                 if (indicator) {
                     indicator.style.transform = 'rotate(0deg)';
                 }
             }
         });
-
-        // Evento no botão de logout
         const btnLogout = document.getElementById('btn-logout-header');
         if (btnLogout) {
             btnLogout.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
                 logout();
             });
-            
         }
-
-        // Evento no link do perfil
-        const linkPerfil = dropdown.querySelector('a[href="perfil.html"]');
-        if (linkPerfil) {
-            linkPerfil.addEventListener('click', function(e) {
-                // Permitir comportamento padrão do link
-                e.stopPropagation(); // Apenas impedir que o evento chegue ao user-profile
-                
-                // O navegador vai navegar normalmente
-            });
-            
-        }
-
-        // Fechar dropdown ao clicar em qualquer item
         const dropdownItems = dropdown.querySelectorAll('.user-dropdown-item');
         dropdownItems.forEach(item => {
             item.addEventListener('click', function() {
-                // Fechar dropdown após clicar em qualquer item
                 setTimeout(() => {
                     dropdown.classList.remove('show');
                     userProfile.classList.remove('active');
@@ -174,43 +91,26 @@
                     if (indicator) {
                         indicator.style.transform = 'rotate(0deg)';
                     }
-                }, 100); // Pequeno delay para permitir navegação
+                }, 100);
             });
         });
     }
-
-    // Inicialização principal
     function inicializar() {
-        
-        
-        // Verificar autenticação
         const token = localStorage.getItem("token");
-        
         if (!token) {
-            // Se não houver token e não estiver na página de login, redirecionar
             if (!window.location.href.includes('login.html')) {
-                
                 window.location.href = "login.html";
             }
             return;
         }
-
-        // Decodificar token
         const decodedToken = decodeJWT(token);
         const username = decodedToken?.sub;
         const role = decodedToken?.role;
-
-        
-
-        // Atualizar nome do usuário no header
         if (username) {
             const userProfileSpan = document.querySelector(".user-profile span");
             if (userProfileSpan) {
                 userProfileSpan.textContent = username;
-                
             }
-
-            // Adicionar badge de ADMIN
             if (role === 'ADMIN') {
                 const userProfile = document.querySelector(".user-profile");
                 if (userProfile && !userProfile.querySelector('.admin-badge')) {
@@ -226,41 +126,28 @@
                         font-weight: 700;
                     `;
                     badge.textContent = 'ADMIN';
-                    
-                    // Adicionar após o span do nome
                     const span = userProfile.querySelector('span');
                     if (span) {
                         span.insertAdjacentElement('afterend', badge);
                     } else {
                         userProfile.appendChild(badge);
                     }
-                    
                 }
             }
         }
-
-        // Criar dropdown
         criarDropdownUsuario();
-
-        // Verificar expiração do token
         const currentTime = Math.floor(Date.now() / 1000);
         if (decodedToken?.exp && decodedToken.exp < currentTime) {
             alert("Sua sessão expirou. Faça login novamente.");
             localStorage.removeItem("token");
             window.location.href = "login.html";
         }
-
-        
     }
-
-    // Executar quando o DOM estiver pronto
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', inicializar);
     } else {
         inicializar();
     }
-
 })();
-
 
 

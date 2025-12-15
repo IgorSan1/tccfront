@@ -1,9 +1,11 @@
-.auth-container {
+﻿.auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
+
+/* Login: tela de autenticação e formulários */
 
 .auth-box {
     background: var(--card-background);
@@ -14,6 +16,15 @@
     max-width: 450px;
     text-align: center;
 }
+
+/* Caixa de autenticação: formulário central e ações relacionadas ao login */
+
+.auth-box .logo {
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+/* Logo do login: marca no topo do formulário */
 
 .auth-box .logo {
     height: 60px;

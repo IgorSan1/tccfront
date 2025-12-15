@@ -1,4 +1,4 @@
-.page-header {
+﻿.page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6,6 +6,8 @@
     padding-bottom: 1.5rem;
     border-bottom: 2px solid var(--border-color);
 }
+
+/* Listar Usuários: layout da página, filtros e tabela */
 
 .page-header h2 {
     font-size: 1.8rem;
@@ -23,15 +25,19 @@
     margin: 0;
 }
 
-/* ===== FILTROS E BUSCA ===== */
+
 .filters-container {
     margin-bottom: 2rem;
 }
+
+/* Filtros: barra de filtros e busca para a listagem de usuários */
 
 .search-container {
     position: relative;
     margin-bottom: 1.5rem;
 }
+
+/* Busca: compatível com foco e acessibilidade */
 
 .search-container .icon {
     position: absolute;
@@ -59,6 +65,8 @@
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
+/* Tabela/Lista: estiliza linhas, cabeçalhos e ações na listagem */
+
 .btn-clear-filter {
     position: absolute;
     right: 10px;
@@ -78,7 +86,7 @@
     color: var(--text-primary);
 }
 
-/* ===== OPÇÕES DE FILTRO ===== */
+
 .filter-options {
     display: flex;
     gap: 1rem;
@@ -115,7 +123,7 @@
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
-/* ===== RESULTADO DO FILTRO ===== */
+
 .resultado-filtro {
     font-size: 0.9rem;
     color: var(--text-secondary);
@@ -134,7 +142,7 @@
     font-weight: 500;
 }
 
-/* ===== TABELA ===== */
+
 .table-container {
     overflow-x: auto;
 }
@@ -173,7 +181,7 @@
     display: none;
 }
 
-/* ===== BADGES DE PERFIL E CARGO ===== */
+
 .badge-role {
     display: inline-block;
     padding: 0.35rem 0.75rem;
@@ -203,7 +211,7 @@
     color: var(--text-primary);
 }
 
-/* ===== BOTÕES DE AÇÃO NA TABELA ===== */
+
 .action-buttons-cell {
     display: flex;
     gap: 8px;
@@ -250,7 +258,7 @@
     background-color: #c82333;
 }
 
-/* ===== MODAL ===== */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -399,7 +407,7 @@
     border-top: 1px solid var(--border-color);
 }
 
-/* ===== PAGINAÇÃO ===== */
+
 .paginacao-container {
     display: flex;
     justify-content: space-between;
@@ -472,7 +480,7 @@
     border-color: var(--primary-blue);
 }
 
-/* ===== BOTÕES DE AÇÃO ===== */
+
 .action-buttons {
     display: flex;
     gap: 1rem;
@@ -480,7 +488,7 @@
     justify-content: flex-end;
 }
 
-/* ===== RESPONSIVIDADE ===== */
+
 @media (max-width: 768px) {
     .page-header {
         flex-direction: column;

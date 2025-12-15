@@ -1,10 +1,10 @@
-/* Adições para paciente-detalhes.css */
-
-.page-header {
+﻿.page-header {
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
 }
+
+/* Paciente Detalhes: informações do paciente e histórico vacinal */
 
 .page-header h2 {
     color: var(--text-primary);
@@ -26,7 +26,9 @@
     padding: 20px;
 }
 
-/* ===== HEADER COM BOTÃO DE EDITAR ===== */
+/* Info/Historico: cartões com dados do paciente e histórico vacinal */
+
+
 .card-header-with-action {
     display: flex;
     justify-content: space-between;
@@ -35,6 +37,8 @@
     padding-bottom: 1rem;
     border-bottom: 2px solid var(--border-color);
 }
+
+/* Cabeçalho de cartão com ação: título + botões (editar, etc.) */
 
 .card-header-with-action .card-title {
     margin: 0;
@@ -72,9 +76,13 @@
     margin-top: 15px;
 }
 
+/* Grid de informações: organiza campos do paciente de forma responsiva */
+
 .info-item {
     padding: 0.5rem 0;
 }
+
+/* Itens de informação: rótulos e valores usados na página do paciente */
 
 .info-item strong {
     color: var(--text-primary);
@@ -128,7 +136,7 @@
     justify-content: flex-end;
 }
 
-/* Estilo para linhas filtradas */
+
 .data-table tbody tr.oculto {
     display: none;
 }
@@ -138,7 +146,7 @@
     transition: background-color 0.2s ease;
 }
 
-/* Estilo para mensagem de resultado do filtro */
+
 #resultado-filtro.tem-resultados {
     color: var(--primary-blue);
     font-weight: 500;
@@ -149,7 +157,7 @@
     font-weight: 500;
 }
 
-/* ===== NOVOS ESTILOS - BOTÕES DE AÇÃO NA TABELA ===== */
+
 .action-buttons-cell {
     display: flex;
     gap: 8px;
@@ -196,7 +204,7 @@
     background-color: #c82333;
 }
 
-/* ===== MODAL DE EDIÇÃO ===== */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -297,7 +305,7 @@
 }
 
 
-/* Responsividade para paginação */
+
 @media (max-width: 768px) {
     .paginacao-container {
         flex-direction: column;
@@ -338,7 +346,7 @@
     }
 }
 
-/* Estilo do botão de excluir */
+
 .btn-delete-info {
     background-color: #dc3545;
     color: white;
@@ -372,14 +380,14 @@
     box-shadow: none;
 }
 
-/* Container dos botões de ação */
+
 .card-header-with-action > div {
     display: flex;
     gap: 0.5rem;
     align-items: center;
 }
 
-/* Responsividade */
+
 @media (max-width: 768px) {
     .card-header-with-action {
         flex-direction: column;

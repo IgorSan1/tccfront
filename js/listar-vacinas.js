@@ -1,47 +1,34 @@
-(function() {
+﻿(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
-
     let todasVacinas = [];
     let vacinasFiltradas = [];
     let vacinaEmEdicao = null;
     let paginaAtual = 1;
     const ITENS_POR_PAGINA = 5;
-    
-    // ✅ CONFIGURAÇÃO DE ORDENAÇÃO
     let ordenacaoAtual = {
-        campo: 'dataFabricacao', // Campo padrão: data de fabricação
-        direcao: 'desc' // 'asc' = mais antiga primeiro, 'desc' = mais recente primeiro
+        campo: 'dataFabricacao', 
+        direcao: 'desc' 
     };
-
-    // ===== VERIFICAR AUTENTICAÇÃO =====
     if (!token) {
         alert("Você precisa estar logado para acessar esta página.");
         window.location.href = "login.html";
         return;
     }
-
-    // ===== FUNÇÕES AUXILIARES =====
     function formatarData(data) {
         if (!data) return "-";
-        
         if (data.includes('/')) {
             return data;
         }
-        
         if (data.includes('-')) {
             const [ano, mes, dia] = data.split('-');
             return `${dia}/${mes}/${ano}`;
         }
-        
         return data;
     }
-
     function verificarVencimento(dataValidade) {
         if (!dataValidade) return 'vencida';
-        
         let dataValidadeObj;
-        
         if (dataValidade.includes('/')) {
             const [dia, mes, ano] = dataValidade.split('/');
             dataValidadeObj = new Date(ano, mes - 1, dia);
@@ -51,37 +38,28 @@
         } else {
             return 'vencida';
         }
-        
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
-        
         return dataValidadeObj >= hoje ? 'valida' : 'vencida';
     }
-
     function formatarDataParaInput(data) {
         if (!data) return "";
-        
         if (data.includes('/')) {
             const [dia, mes, ano] = data.split('/');
             return `${ano}-${mes}-${dia}`;
         }
-        
         if (data.includes('-')) {
             return data.split('T')[0];
         }
-        
         return "";
     }
-
     function formatDateToDDMMYYYY(isoDate) {
         if (!isoDate) return null;
         const [y, m, d] = isoDate.split("-");
         return `${d}/${m}/${y}`;
     }
-
     function formatarFabricante(fabricante) {
         if (!fabricante) return "-";
-        
         const fabricantes = {
             'PFIZER_BIONTECH': 'Pfizer Biontech',
             'ASTRAZENECA_FIOCRUZ': 'AstraZeneca Fiocruz',
@@ -93,38 +71,28 @@
             'GLAXOSMITHKLINE': 'GlaxoSmithKline',
             'MERCK_SHARP_DOHME': 'Merck Sharp & Dohme'
         };
-        
         return fabricantes[fabricante] || fabricante;
     }
-
     function normalizeText(text) {
         return text.toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
     }
-
-    // ✅ NOVA FUNÇÃO: Converter data para objeto Date para ordenação
     function converterParaDate(dataString) {
-        if (!dataString) return new Date(0); // Data mínima para datas inválidas
-        
+        if (!dataString) return new Date(0); 
         if (dataString.includes('/')) {
             const [dia, mes, ano] = dataString.split('/');
             return new Date(ano, mes - 1, dia);
         }
-        
         if (dataString.includes('-')) {
             const [ano, mes, dia] = dataString.split('-');
             return new Date(ano, mes - 1, dia.split('T')[0]);
         }
-        
         return new Date(dataString);
     }
-
-    // ✅ NOVA FUNÇÃO: Ordenar vacinas
     function ordenarVacinas(vacinas) {
         return [...vacinas].sort((a, b) => {
             let valorA, valorB;
-            
             switch(ordenacaoAtual.campo) {
                 case 'dataFabricacao':
                     valorA = converterParaDate(a.dataFabricacao);
@@ -141,7 +109,6 @@
                         ? valorA.localeCompare(valorB)
                         : valorB.localeCompare(valorA);
                 default:
-                    // Fallback: ordenar por data de criação ou ID
                     if (a.createdAt && b.createdAt) {
                         valorA = new Date(a.createdAt);
                         valorB = new Date(b.createdAt);
@@ -149,29 +116,21 @@
                         return b.id - a.id;
                     }
             }
-            
-            // Ordenação por data
             if (ordenacaoAtual.direcao === 'asc') {
-                return valorA - valorB; // Mais antiga primeiro
+                return valorA - valorB; 
             } else {
-                return valorB - valorA; // Mais recente primeiro
+                return valorB - valorA; 
             }
         });
     }
-
-    // ===== CARREGAR VACINAS =====
     async function carregarVacinas() {
         const loading = document.getElementById('loading');
         const tbody = document.getElementById('vacinas-table-body');
         const msgVazio = document.getElementById('vacinas-vazio');
-
         loading.style.display = 'block';
         tbody.innerHTML = '';
         msgVazio.style.display = 'none';
-
         try {
-            
-
             const response = await fetch(`${API_BASE}/vacina?size=1000&page=0`, {
                 method: "GET",
                 headers: {
@@ -179,135 +138,87 @@
                     "Authorization": `Bearer ${token}`
                 }
             });
-
             if (!response.ok) {
                 throw new Error(`Erro ao carregar vacinas: ${response.status}`);
             }
-
             const data = await response.json();
-            
-
             let vacinas = [];
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
                 vacinas = data.dados[0];
             } else if (Array.isArray(data?.dados)) {
                 vacinas = data.dados;
             }
-
             todasVacinas = vacinas;
             vacinasFiltradas = [...vacinas];
-
             renderizarTabela(vacinas);
-
         } catch (error) {
-            
             alert("Erro ao carregar vacinas. Verifique sua conexão.");
         } finally {
             loading.style.display = 'none';
         }
     }
-
-    // ===== RENDERIZAR TABELA =====
     function renderizarTabela(vacinas) {
         const tbody = document.getElementById('vacinas-table-body');
         const msgVazio = document.getElementById('vacinas-vazio');
-
         if (vacinas.length === 0) {
             tbody.innerHTML = '';
             msgVazio.style.display = 'block';
             removerPaginacao();
             return;
         }
-
         tbody.innerHTML = '';
         msgVazio.style.display = 'none';
-
-        // ✅ APLICAR ORDENAÇÃO (por data de fabricação - mais recente primeiro)
         const vacinasOrdenadas = ordenarVacinas(vacinas);
-
-        
         vacinasOrdenadas.slice(0, 3).forEach((v, i) => {
         });
-
-        // Calcular paginação
         const totalPaginas = Math.ceil(vacinasOrdenadas.length / ITENS_POR_PAGINA);
         const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
         const fim = inicio + ITENS_POR_PAGINA;
         const vacinasPaginadas = vacinasOrdenadas.slice(inicio, fim);
-
-        // Renderizar apenas as vacinas da página atual
         vacinasPaginadas.forEach(vacina => {
             const row = tbody.insertRow();
-
-            // Nome
             row.insertCell().textContent = vacina.nome || '-';
-
-            // Lote
             row.insertCell().textContent = vacina.numeroLote || '-';
-
-            // Fabricante
             row.insertCell().textContent = formatarFabricante(vacina.fabricante);
-
-            // Data Fabricação
             row.insertCell().textContent = formatarData(vacina.dataFabricacao);
-
-            // Data Validade
             row.insertCell().textContent = formatarData(vacina.dataValidade);
-
-            // Status (Válida ou Vencida)
             const cellStatus = row.insertCell();
             const status = verificarVencimento(vacina.dataValidade);
             const badgeStatus = document.createElement('span');
             badgeStatus.className = `badge-status ${status}`;
             badgeStatus.textContent = status === 'valida' ? 'Válida' : 'Vencida';
             cellStatus.appendChild(badgeStatus);
-
-            // Ações
             const cellAcoes = row.insertCell();
             cellAcoes.className = 'action-buttons-cell';
-            
             const actionDiv = document.createElement('div');
             actionDiv.style.cssText = 'display: flex; gap: 8px; justify-content: center; align-items: center;';
-            
-            // Botão Editar
             const btnEditar = document.createElement('button');
             btnEditar.className = 'btn-action btn-edit';
             btnEditar.innerHTML = '<i class="fa-solid fa-edit"></i> Editar';
             btnEditar.title = 'Editar vacina';
             btnEditar.onclick = () => abrirModalEdicaoVacina(vacina);
-            
-            // Botão Excluir
             const btnExcluir = document.createElement('button');
             btnExcluir.className = 'btn-action btn-delete';
             btnExcluir.innerHTML = '<i class="fa-solid fa-trash"></i> Excluir';
             btnExcluir.title = 'Excluir vacina';
             btnExcluir.onclick = () => excluirVacina(vacina.uuid, vacina.nome);
-            
             actionDiv.appendChild(btnEditar);
             actionDiv.appendChild(btnExcluir);
             cellAcoes.appendChild(actionDiv);
         });
-
-        // Criar/atualizar paginação
         criarPaginacao(vacinasOrdenadas.length);
     }
-
-    // ===== PAGINAÇÃO =====
     function criarPaginacao(totalItens) {
         const totalPaginas = Math.ceil(totalItens / ITENS_POR_PAGINA);
-        
         const paginacaoExistente = document.querySelector('.paginacao-container');
         if (paginacaoExistente) {
             paginacaoExistente.remove();
         }
-
         if (totalPaginas <= 1) {
             return;
         }
-
         const card = document.querySelector('.card');
         if (!card) return;
-
         const paginacaoContainer = document.createElement('div');
         paginacaoContainer.className = 'paginacao-container';
         paginacaoContainer.style.cssText = `
@@ -318,18 +229,15 @@
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
         `;
-
         const info = document.createElement('div');
         info.className = 'paginacao-info';
         info.style.cssText = 'color: var(--text-secondary); font-size: 0.9rem;';
         const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA + 1;
         const fim = Math.min(paginaAtual * ITENS_POR_PAGINA, totalItens);
         info.textContent = `Mostrando ${inicio} a ${fim} de ${totalItens} vacinas`;
-
         const botoesContainer = document.createElement('div');
         botoesContainer.className = 'paginacao-botoes';
         botoesContainer.style.cssText = 'display: flex; gap: 0.5rem; align-items: center;';
-
         const btnAnterior = criarBotaoPaginacao(
             '<i class="fa-solid fa-chevron-left"></i> Anterior',
             paginaAtual === 1,
@@ -341,10 +249,8 @@
                 }
             }
         );
-
         const paginasNumeros = document.createElement('div');
         paginasNumeros.style.cssText = 'display: flex; gap: 0.3rem;';
-
         let paginasVisiveis = [];
         if (totalPaginas <= 5) {
             for (let i = 1; i <= totalPaginas; i++) {
@@ -359,7 +265,6 @@
                 paginasVisiveis = [1, '...', paginaAtual - 1, paginaAtual, paginaAtual + 1, '...', totalPaginas];
             }
         }
-
         paginasVisiveis.forEach(numeroPagina => {
             if (numeroPagina === '...') {
                 const reticencias = document.createElement('span');
@@ -371,7 +276,6 @@
                 paginasNumeros.appendChild(btnPagina);
             }
         });
-
         const btnProximo = criarBotaoPaginacao(
             'Próximo <i class="fa-solid fa-chevron-right"></i>',
             paginaAtual === totalPaginas,
@@ -383,17 +287,13 @@
                 }
             }
         );
-
         botoesContainer.appendChild(btnAnterior);
         botoesContainer.appendChild(paginasNumeros);
         botoesContainer.appendChild(btnProximo);
-
         paginacaoContainer.appendChild(info);
         paginacaoContainer.appendChild(botoesContainer);
-
         card.appendChild(paginacaoContainer);
     }
-
     function criarBotaoPaginacao(html, disabled, onClick) {
         const btn = document.createElement('button');
         btn.className = 'btn-paginacao';
@@ -414,7 +314,6 @@
             gap: 0.5rem;
             opacity: ${disabled ? '0.6' : '1'};
         `;
-        
         if (!disabled) {
             btn.onmouseover = () => {
                 btn.style.backgroundColor = 'var(--background-color)';
@@ -426,10 +325,8 @@
             };
             btn.onclick = onClick;
         }
-        
         return btn;
     }
-
     function criarBotaoNumeroPagina(numero, isAtiva) {
         const btn = document.createElement('button');
         btn.className = 'btn-pagina-numero';
@@ -446,7 +343,6 @@
             min-width: 40px;
             transition: all 0.2s ease;
         `;
-        
         if (!isAtiva) {
             btn.onmouseover = () => {
                 btn.style.backgroundColor = 'var(--background-color)';
@@ -462,66 +358,48 @@
                 scrollToTop();
             };
         }
-        
         return btn;
     }
-
     function removerPaginacao() {
         const paginacaoExistente = document.querySelector('.paginacao-container');
         if (paginacaoExistente) {
             paginacaoExistente.remove();
         }
     }
-
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    // ===== MODAL DE EDIÇÃO =====
     window.abrirModalEdicaoVacina = function(vacina) {
-        
-        
         vacinaEmEdicao = vacina;
-        
         document.getElementById('edit-vacina-uuid').value = vacina.uuid;
         document.getElementById('edit-vacina-nome').value = vacina.nome || '';
         document.getElementById('edit-vacina-lote').value = vacina.numeroLote || '';
         document.getElementById('edit-vacina-fabricante').value = vacina.fabricante || '';
-        
         const dataFabricacao = formatarDataParaInput(vacina.dataFabricacao);
         document.getElementById('edit-vacina-fabricacao').value = dataFabricacao;
-        
         const dataValidade = formatarDataParaInput(vacina.dataValidade);
         document.getElementById('edit-vacina-validade').value = dataValidade;
-        
         document.getElementById('modal-editar-vacina').style.display = 'flex';
     };
-
     window.fecharModalEdicaoVacina = function() {
         document.getElementById('modal-editar-vacina').style.display = 'none';
         document.getElementById('form-editar-vacina').reset();
         vacinaEmEdicao = null;
     };
-
-    // ===== SUBMISSÃO DO FORMULÁRIO DE EDIÇÃO =====
     document.getElementById('form-editar-vacina').addEventListener('submit', async function(e) {
         e.preventDefault();
-
         const vacinaUuid = document.getElementById('edit-vacina-uuid').value;
         const nome = document.getElementById('edit-vacina-nome').value.trim();
         const numeroLote = document.getElementById('edit-vacina-lote').value.trim();
         const fabricante = document.getElementById('edit-vacina-fabricante').value;
         const dataFabricacaoInput = document.getElementById('edit-vacina-fabricacao').value;
         const dataValidadeInput = document.getElementById('edit-vacina-validade').value;
-
         if (!nome || !numeroLote || !fabricante || !dataFabricacaoInput || !dataValidadeInput) {
             alert("Por favor, preencha todos os campos obrigatórios.");
             return;
         }
-
         const dataFabricacao = formatDateToDDMMYYYY(dataFabricacaoInput);
         const dataValidade = formatDateToDDMMYYYY(dataValidadeInput);
-
         const payload = {
             nome,
             numeroLote,
@@ -529,9 +407,6 @@
             dataFabricacao,
             dataValidade
         };
-
-        
-
         try {
             const response = await fetch(`${API_BASE}/vacina/${vacinaUuid}`, {
                 method: "PUT",
@@ -541,7 +416,6 @@
                 },
                 body: JSON.stringify(payload)
             });
-
             if (response.ok || response.status === 204) {
                 alert("Vacina atualizada com sucesso!");
                 fecharModalEdicaoVacina();
@@ -551,22 +425,15 @@
                 alert(`Erro ao atualizar vacina: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            
             alert("Erro ao conectar com o servidor.");
         }
     });
-
-    // ===== FUNÇÃO PARA EXCLUIR VACINA =====
     window.excluirVacina = async function(uuid, nome) {
         const confirmacao = confirm(
             `Tem certeza que deseja excluir a vacina "${nome}"?\n\n` +
             `Esta ação não pode ser desfeita.`
         );
-
         if (!confirmacao) return;
-
-        
-
         try {
             const response = await fetch(`${API_BASE}/vacina/${uuid}`, {
                 method: "DELETE",
@@ -574,7 +441,6 @@
                     "Authorization": `Bearer ${token}`
                 }
             });
-
             if (response.ok || response.status === 204) {
                 alert("Vacina excluída com sucesso!");
                 await carregarVacinas();
@@ -583,51 +449,41 @@
                 alert(`Erro ao excluir vacina: ${errorData.mensagem || response.statusText}`);
             }
         } catch (error) {
-            
             alert("Erro ao conectar com o servidor.");
         }
     };
-
-    // ===== FILTRAR VACINAS =====
     function filtrarVacinas() {
         const filtroTexto = normalizeText(document.getElementById('filtro-vacina').value.trim());
         const filtroFabricante = document.getElementById('filtro-fabricante').value;
         const filtroStatus = document.getElementById('filtro-status').value;
         const resultadoDiv = document.getElementById('resultado-filtro');
         const btnLimpar = document.getElementById('limpar-filtro');
-
         if (filtroTexto.length > 0 || filtroFabricante || filtroStatus) {
             btnLimpar.style.display = 'flex';
         } else {
             btnLimpar.style.display = 'none';
         }
-
         vacinasFiltradas = todasVacinas.filter(vacina => {
             let passaFiltroTexto = true;
             if (filtroTexto) {
                 const nome = normalizeText(vacina.nome || '');
                 const lote = normalizeText(vacina.numeroLote || '');
                 const fabricante = normalizeText(formatarFabricante(vacina.fabricante));
-
                 passaFiltroTexto = nome.includes(filtroTexto) || 
                                    lote.includes(filtroTexto) || 
                                    fabricante.includes(filtroTexto);
             }
-
             let passaFiltroFabricante = true;
             if (filtroFabricante) {
                 passaFiltroFabricante = vacina.fabricante === filtroFabricante;
             }
-
             let passaFiltroStatus = true;
             if (filtroStatus) {
                 const statusVacina = verificarVencimento(vacina.dataValidade);
                 passaFiltroStatus = statusVacina === filtroStatus;
             }
-
             return passaFiltroTexto && passaFiltroFabricante && passaFiltroStatus;
         });
-
         if (filtroTexto || filtroFabricante || filtroStatus) {
             if (vacinasFiltradas.length > 0) {
                 resultadoDiv.textContent = `${vacinasFiltradas.length} vacina(s) encontrada(s)`;
@@ -640,11 +496,9 @@
             resultadoDiv.textContent = '';
             resultadoDiv.className = 'resultado-filtro';
         }
-
         paginaAtual = 1;
         renderizarTabela(vacinasFiltradas);
     }
-
     function limparFiltros() {
         document.getElementById('filtro-vacina').value = '';
         document.getElementById('filtro-fabricante').value = '';
@@ -653,20 +507,16 @@
         filtrarVacinas();
         document.getElementById('filtro-vacina').focus();
     }
-
-    // ===== EVENTOS =====
     const filtroInput = document.getElementById('filtro-vacina');
     const filtroFabricante = document.getElementById('filtro-fabricante');
     const filtroStatus = document.getElementById('filtro-status');
     const btnLimpar = document.getElementById('limpar-filtro');
-
     if (filtroInput) {
         let debounceTimer;
         filtroInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(filtrarVacinas, 300);
         });
-
         filtroInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -674,28 +524,22 @@
             }
         });
     }
-
     if (filtroFabricante) {
         filtroFabricante.addEventListener('change', filtrarVacinas);
     }
-
     if (filtroStatus) {
         filtroStatus.addEventListener('change', filtrarVacinas);
     }
-
     if (btnLimpar) {
         btnLimpar.addEventListener('click', limparFiltros);
     }
-
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('modal-editar-vacina');
         if (e.target === modal) {
             fecharModalEdicaoVacina();
         }
     });
-
     carregarVacinas();
 })();
-
 
 

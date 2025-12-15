@@ -1,64 +1,47 @@
-(function() {
+﻿(function() {
     const API_BASE = "/api/v1";
     const token = localStorage.getItem("token");
-
     if (!token) {
-        
         return;
     }
-
-    // ===== UTILITÁRIOS =====
     function calcularIdade(dataNascimento) {
         if (!dataNascimento) return 0;
-        
         let data = dataNascimento;
         if (dataNascimento.includes('/')) {
             const [dia, mes, ano] = dataNascimento.split('/');
             data = `${ano}-${mes}-${dia}`;
         }
-        
         const hoje = new Date();
         const nascimento = new Date(data);
         let idade = hoje.getFullYear() - nascimento.getFullYear();
         const mes = hoje.getMonth() - nascimento.getMonth();
-        
         if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
             idade--;
         }
-        
         return idade;
     }
-
     function getFaixaEtaria(idade) {
         if (idade <= 12) return '0-12';
         if (idade <= 17) return '13-17';
         if (idade <= 59) return '18-59';
         return '60+';
     }
-
-    // ===== GRÁFICO 1: VACINAÇÕES POR PERÍODO (LINHA) =====
     async function carregarGraficoVacinacoesPeriodo() {
         try {
             const response = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
             if (!response.ok) throw new Error('Erro ao carregar vacinações');
-
             const data = await response.json();
             let vacinacoes = [];
-            
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
                 vacinacoes = data.dados[0];
             } else if (Array.isArray(data?.dados)) {
                 vacinacoes = data.dados;
             }
-
-            // Filtrar últimos 30 dias
             const hoje = new Date();
             const dia30Atras = new Date(hoje);
             dia30Atras.setDate(hoje.getDate() - 30);
-
             const vacinacoesRecentes = vacinacoes.filter(v => {
                 if (!v.dataAplicacao) return false;
                 let dataStr = v.dataAplicacao;
@@ -69,8 +52,6 @@
                 const dataVacinacao = new Date(dataStr);
                 return dataVacinacao >= dia30Atras && dataVacinacao <= hoje;
             });
-
-            // Agrupar por data
             const agrupado = {};
             for (let i = 0; i < 30; i++) {
                 const data = new Date(dia30Atras);
@@ -78,7 +59,6 @@
                 const dataStr = data.toISOString().split('T')[0];
                 agrupado[dataStr] = 0;
             }
-
             vacinacoesRecentes.forEach(v => {
                 let dataStr = v.dataAplicacao;
                 if (dataStr.includes('/')) {
@@ -91,24 +71,18 @@
                     agrupado[dataStr]++;
                 }
             });
-
             const labels = Object.keys(agrupado).sort().map(d => {
                 const [ano, mes, dia] = d.split('-');
                 return `${dia}/${mes}`;
             });
             const valores = Object.keys(agrupado).sort().map(k => agrupado[k]);
-
             desenharGraficoLinha('graficoVacinacoesPeriodo', labels, valores);
-
         } catch (error) {
-            
         }
     }
-
     function desenharGraficoLinha(canvasId, labels, valores) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
@@ -117,13 +91,9 @@
         const paddingBottom = 60;
         const graphWidth = width - padding * 2;
         const graphHeight = height - paddingTop - paddingBottom;
-
         ctx.clearRect(0, 0, width, height);
-
         const maxValue = Math.max(...valores, 1);
         const roundedMax = Math.ceil(maxValue / 5) * 5 || 5;
-
-        // Desenhar linhas de grade horizontais
         ctx.strokeStyle = '#E8E8E8';
         ctx.lineWidth = 1;
         const numGridLines = 5;
@@ -133,7 +103,6 @@
             ctx.moveTo(padding, y);
             ctx.lineTo(width - padding, y);
             ctx.stroke();
-
             const value = Math.round(roundedMax - (roundedMax / numGridLines) * i);
             ctx.fillStyle = '#495057';
             ctx.font = 'bold 14px Inter, sans-serif';
@@ -141,8 +110,6 @@
             ctx.textBaseline = 'middle';
             ctx.fillText(value, padding - 15, y);
         }
-
-        // Desenhar eixos principais
         ctx.strokeStyle = '#495057';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -150,22 +117,16 @@
         ctx.lineTo(padding, height - paddingBottom);
         ctx.lineTo(width - padding, height - paddingBottom);
         ctx.stroke();
-
-        // Calcular pontos
         const stepX = graphWidth / (labels.length - 1 || 1);
         const points = [];
-
         valores.forEach((valor, index) => {
             const x = padding + stepX * index;
             const y = height - paddingBottom - ((valor - 0) / roundedMax) * graphHeight;
             points.push({ x, y, valor });
         });
-
-        // Desenhar área preenchida com gradiente
         const gradient = ctx.createLinearGradient(0, paddingTop, 0, height - paddingBottom);
         gradient.addColorStop(0, 'rgba(0, 123, 255, 0.35)');
         gradient.addColorStop(1, 'rgba(0, 123, 255, 0.02)');
-        
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.moveTo(points[0].x, height - paddingBottom);
@@ -173,8 +134,6 @@
         ctx.lineTo(points[points.length - 1].x, height - paddingBottom);
         ctx.closePath();
         ctx.fill();
-
-        // Desenhar linha suavizada
         ctx.strokeStyle = '#007BFF';
         ctx.lineWidth = 3.5;
         ctx.lineCap = 'round';
@@ -183,7 +142,6 @@
         ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
-        
         for (let i = 0; i < points.length - 1; i++) {
             const xc = (points[i].x + points[i + 1].x) / 2;
             const yc = (points[i].y + points[i + 1].y) / 2;
@@ -192,25 +150,19 @@
         ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
         ctx.stroke();
         ctx.shadowBlur = 0;
-
-        // Desenhar pontos com destaque
         points.forEach(p => {
             ctx.fillStyle = 'rgba(0, 123, 255, 0.15)';
             ctx.beginPath();
             ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
             ctx.fill();
-            
             ctx.fillStyle = '#007BFF';
             ctx.beginPath();
             ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
             ctx.fill();
-            
             ctx.strokeStyle = '#FFFFFF';
             ctx.lineWidth = 3;
             ctx.stroke();
         });
-
-        // Labels do eixo X
         ctx.fillStyle = '#495057';
         ctx.font = 'bold 13px Inter, sans-serif';
         ctx.textAlign = 'center';
@@ -223,114 +175,76 @@
             }
         });
     }
-
-    // ===== GRÁFICO 2: TOP 5 VACINAS DOS ÚLTIMOS 30 DIAS - OTIMIZADO V2 =====
     async function carregarGraficoTopVacinas() {
     const container = document.getElementById('graficoTopVacinas');
-    
     try {
         if (container) {
             container.innerHTML = '<div class="loading-chart"><i class="fa-solid fa-spinner fa-spin"></i><p>Carregando...</p></div>';
         }
-
-        
-
-        // PASSO 1: Carregar todas as vacinações
         const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-
         if (!responseVacinacoes.ok) throw new Error('Erro ao carregar vacinações');
-
         const dataVacinacoes = await responseVacinacoes.json();
         let vacinacoes = [];
-        
         if (Array.isArray(dataVacinacoes?.dados) && Array.isArray(dataVacinacoes.dados[0])) {
             vacinacoes = dataVacinacoes.dados[0];
         } else if (Array.isArray(dataVacinacoes?.dados)) {
             vacinacoes = dataVacinacoes.dados;
         }
-
-        
-
         if (vacinacoes.length === 0) {
             if (container) {
                 container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Nenhuma vacinação registrada</p></div>';
             }
             return;
         }
-
-        // PASSO 2: Filtrar últimos 30 dias
         const hoje = new Date();
         const dia30Atras = new Date(hoje);
         dia30Atras.setDate(hoje.getDate() - 30);
-
         const vacinacoesRecentes = vacinacoes.filter(v => {
             if (!v.dataAplicacao) return false;
-            
             let dataStr = v.dataAplicacao;
             if (dataStr.includes('/')) {
                 const [dia, mes, ano] = dataStr.split('/');
                 dataStr = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
             }
-            
             const dataVacinacao = new Date(dataStr);
             return dataVacinacao >= dia30Atras && dataVacinacao <= hoje;
         });
-
-        
-
         if (vacinacoesRecentes.length === 0) {
             if (container) {
                 container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Nenhuma vacinação nos últimos 30 dias</p></div>';
             }
             return;
         }
-
-        // PASSO 3: Carregar TODAS as vacinas para criar mapa
-        
         const responseVacinas = await fetch(`${API_BASE}/vacina/all?size=1000&page=0`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-
         if (!responseVacinas.ok) throw new Error('Erro ao carregar vacinas');
-
         const dataVacinas = await responseVacinas.json();
         let vacinas = [];
-        
         if (Array.isArray(dataVacinas?.dados) && Array.isArray(dataVacinas.dados[0])) {
             vacinas = dataVacinas.dados[0];
         } else if (Array.isArray(dataVacinas?.dados)) {
             vacinas = dataVacinas.dados;
         }
-
-        
-
-        // PASSO 4: Criar mapa UUID -> Nome
         const mapaVacinas = {};
         vacinas.forEach(vacina => {
             if (vacina.uuid && vacina.nome) {
                 mapaVacinas[vacina.uuid] = vacina.nome;
             }
         });
-
-        // PASSO 5: Buscar detalhes e contar
         const contador = {};
         let processadas = 0;
         let sucesso = 0;
-
         for (const v of vacinacoesRecentes) {
             if (!v.uuid) continue;
-
             try {
                 const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                
                 if (respDetalhe.ok) {
                     const detalhe = await respDetalhe.json();
-                    
-                    // Extrair dados
                     let detalheDados = null;
                     if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
                         detalheDados = detalhe.dados[0][0];
@@ -341,69 +255,46 @@
                     } else {
                         detalheDados = detalhe;
                     }
-                    
-                    // Extrair vacinaUuid
                     const vacinaUuid = detalheDados?.vacinaUuid || 
                                       detalheDados?.vacina_uuid ||
                                       detalheDados?.vacina?.uuid;
-                    
                     if (vacinaUuid && mapaVacinas[vacinaUuid]) {
                         const nomeVacina = mapaVacinas[vacinaUuid];
                         contador[nomeVacina] = (contador[nomeVacina] || 0) + 1;
                         sucesso++;
-                        
                     } else {
-                        
                     }
                 }
                 processadas++;
             } catch (err) {
-                
                 processadas++;
             }
         }
-
-        
-        
-
-        // PASSO 6: Top 5
         const top5 = Object.entries(contador)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
-
-        
-
         if (top5.length === 0) {
             if (container) {
                 container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Não foi possível carregar os dados</p></div>';
             }
             return;
         }
-
         desenharGraficoBarrasHorizontal('graficoTopVacinas', top5);
-
     } catch (error) {
-        
         if (container) {
             container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
         }
     }
 }
-
     function desenharGraficoBarrasHorizontal(containerId, dados) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         container.innerHTML = '';
-
         if (dados.length === 0) {
             container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-chart-bar"></i><p>Nenhum dado disponível</p></div>';
             return;
         }
-
         const maxValue = Math.max(...dados.map(d => d[1]), 1);
-
-        // Cores vibrantes e modernas
         const cores = [
             'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -411,15 +302,12 @@
             'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
             'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
         ];
-
         dados.forEach(([nome, valor], index) => {
             const percentage = (valor / maxValue) * 100;
             const cor = cores[index % cores.length];
-
             const barItem = document.createElement('div');
             barItem.className = 'bar-item';
             barItem.style.cssText = 'display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;';
-
             barItem.innerHTML = `
                 <div class="bar-label" style="
                     min-width: 180px;
@@ -485,10 +373,7 @@
                     ">${valor}</div>
                 </div>
             `;
-
             container.appendChild(barItem);
-            
-            // Animar a barra após adicionar ao DOM
             setTimeout(() => {
                 const barFill = barItem.querySelector('.bar-fill');
                 const barText = barItem.querySelector('.bar-fill span');
@@ -503,67 +388,50 @@
             }, 100 + (index * 150));
         });
     }
-
-    // ===== GRÁFICO 3: DISTRIBUIÇÃO POR FAIXA ETÁRIA (PIZZA) =====
     async function carregarGraficoFaixaEtaria() {
         try {
             const response = await fetch(`${API_BASE}/pessoa?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
             if (!response.ok) throw new Error('Erro ao carregar pessoas');
-
             const data = await response.json();
             let pessoas = [];
-            
             if (Array.isArray(data?.dados) && Array.isArray(data.dados[0])) {
                 pessoas = data.dados[0];
             } else if (Array.isArray(data?.dados)) {
                 pessoas = data.dados;
             }
-
-            // Agrupar por faixa etária
             const distribuicao = {
                 '0-12': 0,
                 '13-17': 0,
                 '18-59': 0,
                 '60+': 0
             };
-
             pessoas.forEach(p => {
                 const idade = calcularIdade(p.dataNascimento);
                 const faixa = getFaixaEtaria(idade);
                 distribuicao[faixa]++;
             });
-
             const dados = [
                 { label: 'Crianças (0-12)', value: distribuicao['0-12'], color: '#667eea' },
                 { label: 'Adolescentes (13-17)', value: distribuicao['13-17'], color: '#f093fb' },
                 { label: 'Adultos (18-59)', value: distribuicao['18-59'], color: '#4facfe' },
                 { label: 'Idosos (60+)', value: distribuicao['60+'], color: '#43e97b' }
             ];
-
             desenharGraficoPizza('graficoFaixaEtaria', dados);
             desenharLegenda('legendaFaixaEtaria', dados);
-
         } catch (error) {
-            
         }
     }
-
     function desenharGraficoPizza(canvasId, dados) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = Math.min(centerX, centerY) - 35;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         const total = dados.reduce((sum, d) => sum + d.value, 0);
-        
         if (total === 0) {
             ctx.fillStyle = '#495057';
             ctx.font = 'bold 18px Inter, sans-serif';
@@ -572,27 +440,21 @@
             ctx.fillText('Sem dados', centerX, centerY);
             return;
         }
-
         let startAngle = -Math.PI / 2;
-
         dados.forEach(item => {
             const sliceAngle = (item.value / total) * 2 * Math.PI;
-
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
             ctx.shadowBlur = 12;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 4;
-
             ctx.fillStyle = item.color;
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
             ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
             ctx.closePath();
             ctx.fill();
-            
             ctx.restore();
-
             ctx.strokeStyle = '#FFFFFF';
             ctx.lineWidth = 5;
             ctx.beginPath();
@@ -600,53 +462,42 @@
             ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
             ctx.closePath();
             ctx.stroke();
-
             const percentage = (item.value / total) * 100;
             if (percentage > 5) {
                 const middleAngle = startAngle + sliceAngle / 2;
                 const textX = centerX + (radius / 1.5) * Math.cos(middleAngle);
                 const textY = centerY + (radius / 1.5) * Math.sin(middleAngle);
-
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
-
                 ctx.fillStyle = '#FFFFFF';
                 ctx.font = 'bold 18px Inter, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(`${percentage.toFixed(1)}%`, textX, textY);
-                
                 ctx.shadowColor = 'transparent';
             }
-
             startAngle += sliceAngle;
         });
-
         const innerRadius = radius * 0.55;
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
         ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.fillStyle = '#212529';
         ctx.font = 'bold 24px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(total, centerX, centerY - 10);
-        
         ctx.fillStyle = '#6c757d';
         ctx.font = '14px Inter, sans-serif';
         ctx.fillText('pacientes', centerX, centerY + 15);
     }
-
     function desenharLegenda(containerId, dados) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         container.innerHTML = '';
-
         dados.forEach(item => {
             const legendItem = document.createElement('div');
             legendItem.className = 'legend-item';
@@ -675,84 +526,51 @@
             container.appendChild(legendItem);
         });
     }
-
-    // ===== GRÁFICO 4: CADASTRADOS VS VACINADOS - OTIMIZADO V2 =====
     async function carregarGraficoCadastradosVacinados() {
         try {
-            
-            
-            // ✅ PASSO 1: Buscar total de pessoas cadastradas
             const responsePessoas = await fetch(`${API_BASE}/pessoa?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
             if (!responsePessoas.ok) throw new Error('Erro ao carregar pessoas');
-
             const dataPessoas = await responsePessoas.json();
             let pessoas = [];
-            
             if (Array.isArray(dataPessoas?.dados) && Array.isArray(dataPessoas.dados[0])) {
                 pessoas = dataPessoas.dados[0];
             } else if (Array.isArray(dataPessoas?.dados)) {
                 pessoas = dataPessoas.dados;
             }
-
             const totalCadastrados = pessoas.length;
-            
-
-            // ✅ PASSO 2: Buscar todas as vacinações
             const responseVacinacoes = await fetch(`${API_BASE}/vacinacoes?size=1000&page=0`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
             if (!responseVacinacoes.ok) throw new Error('Erro ao carregar vacinações');
-
             const dataVacinacoes = await responseVacinacoes.json();
             let vacinacoes = [];
-            
             if (Array.isArray(dataVacinacoes?.dados) && Array.isArray(dataVacinacoes.dados[0])) {
                 vacinacoes = dataVacinacoes.dados[0];
             } else if (Array.isArray(dataVacinacoes?.dados)) {
                 vacinacoes = dataVacinacoes.dados;
             }
-
-            
-
-            // ✅ PASSO 3: Verificar se o backend retorna dados da pessoa na listagem
             const primeiraVacinacao = vacinacoes[0];
             const temDadosPessoa = !!(primeiraVacinacao?.pessoaUuid || 
                                      primeiraVacinacao?.pessoa?.uuid);
-
-            
-
             const pessoasVacinadasSet = new Set();
-
             if (temDadosPessoa) {
-                // ✅ MÉTODO RÁPIDO: Backend retorna os dados
-                
-                
                 vacinacoes.forEach(v => {
                     const pessoaUuid = v.pessoaUuid || v.pessoa?.uuid || v.pessoa_uuid;
-                    
                     if (pessoaUuid) {
                         pessoasVacinadasSet.add(pessoaUuid);
                     }
                 });
             } else {
-                // ✅ MÉTODO DETALHADO: Backend NÃO retorna os dados
-                
-                // Buscar detalhes de cada vacinação
                 for (const v of vacinacoes) {
                     if (!v.uuid) continue;
-                    
                     try {
                         const respDetalhe = await fetch(`${API_BASE}/vacinacoes/${v.uuid}`, {
                             headers: { "Authorization": `Bearer ${token}` }
                         });
-                        
                         if (respDetalhe.ok) {
                             const detalhe = await respDetalhe.json();
-                            
                             let detalheDados = null;
                             if (Array.isArray(detalhe?.dados) && Array.isArray(detalhe.dados[0])) {
                                 detalheDados = detalhe.dados[0][0];
@@ -763,51 +581,36 @@
                             } else {
                                 detalheDados = detalhe;
                             }
-                            
                             const pessoaUuid = detalheDados?.pessoaUuid || 
                                              detalheDados?.pessoa?.uuid;
-                            
                             if (pessoaUuid) {
                                 pessoasVacinadasSet.add(pessoaUuid);
                             }
                         }
                     } catch (err) {
-                        
                     }
                 }
             }
-
             const totalVacinados = pessoasVacinadasSet.size;
-
-            // ✅ PASSO 4: Log detalhado para debug
-            
-
-            // ✅ PASSO 5: Desenhar gráfico
             desenharGraficoComparacao('graficoCadastradosVacinados', {
                 cadastrados: totalCadastrados,
                 vacinados: totalVacinados
             });
-
         } catch (error) {
-            
             const container = document.getElementById('graficoCadastradosVacinados');
             if (container) {
                 container.innerHTML = '<div class="no-data-chart"><i class="fa-solid fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
             }
         }
     }
-
     function desenharGraficoComparacao(containerId, dados) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         container.innerHTML = '';
-
         const maxValue = Math.max(dados.cadastrados, dados.vacinados, 1);
         const percCadastrados = (dados.cadastrados / maxValue) * 100;
         const percVacinados = (dados.vacinados / maxValue) * 100;
         const percCobertura = dados.cadastrados > 0 ? ((dados.vacinados / dados.cadastrados) * 100).toFixed(1) : 0;
-
         container.innerHTML = `
             <div class="comparison-item" style="margin-bottom: 3rem;">
                 <div class="comparison-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
@@ -866,7 +669,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="comparison-item">
                 <div class="comparison-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
                     <div class="comparison-label" style="
@@ -941,17 +743,13 @@
                 </div>
             </div>
         `;
-
-        // Animar as barras
         setTimeout(() => {
             const barCadastrados = container.querySelector('.comparison-bar.cadastrados');
             const barVacinados = container.querySelector('.comparison-bar.vacinados');
             const badge = container.querySelector('.comparison-percentage');
-            
             if (barCadastrados) {
                 barCadastrados.style.width = `${percCadastrados}%`;
             }
-            
             setTimeout(() => {
                 if (barVacinados) {
                     barVacinados.style.width = `${percVacinados}%`;
@@ -964,22 +762,17 @@
             }, 300);
         }, 100);
     }
-
-    // ===== INICIALIZAR TODOS OS GRÁFICOS =====
     function inicializarGraficos() {
-        
         carregarGraficoVacinacoesPeriodo();
         carregarGraficoTopVacinas();
         carregarGraficoFaixaEtaria();
         carregarGraficoCadastradosVacinados();
     }
-
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', inicializarGraficos);
     } else {
         setTimeout(inicializarGraficos, 500);
     }
 })();
-
 
 

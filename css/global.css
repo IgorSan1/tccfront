@@ -1,32 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Global: variáveis e estilos base usados em todo o sistema */
 
 :root {
+    /* Cores principais */
     --primary-blue: #007BFF;
     --primary-blue-dark: #0056b3;
     --primary-green: #28a745;
     --status-warning: #ffc107;
     --status-info: #17a2b8;
     
+    /* Fundos e cards */
     --background-color: #F7F8FC;
     --card-background: #FFFFFF;
     
+    /* Texto */
     --text-primary: #212529;
     --text-secondary: #6c757d;
     --text-light: #FFFFFF;
 
+    /* Bordas e inputs */
     --border-color: #E8E8E8;
     --input-background: #F7F8FC;
     
+    /* Tokens de layout */
     --border-radius: 12px;
     --card-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
 }
 
+/* Reset mínimo: remove margens/paddings e aplica box-sizing */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Tipografia base e fundo da aplicação */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--background-color);
@@ -34,6 +43,7 @@ body {
     line-height: 1.6;
 }
 
+/* Links: cor primária e transição suave */
 a {
     text-decoration: none;
     color: var(--primary-blue);
